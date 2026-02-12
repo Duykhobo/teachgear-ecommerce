@@ -1,0 +1,6 @@
+{
+  "eslint.experimental.useFlatConfig": true,
+  "workbench.colorTheme": "Dracula Theme",
+  "editor.cursorStyle": "line",
+  "editor.cursorWidth": 2
+}

@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    /* 1. Project Options */
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": ["ES2020"] /* Chỉ định thư viện có sẵn, giúp tránh lỗi khi dùng các hàm ES mới */,
+    "outDir": "dist",
+    "rootDir": "src" /* Đảm bảo cấu trúc file trong dist giống hệt src */,
+
+    /* 2. Strict Checks */
+    "strict": true,
+    "noImplicitAny": true /* Ngăn chặn sử dụng kiểu 'any' ngầm định */,
+    "strictNullChecks": true /* Kiểm soát lỗi null/undefined cực kỳ hiệu quả */,
+    "noUnusedLocals": true /* Cảnh báo khi có biến khai báo mà không dùng */,
+    "noUnusedParameters": true /* Cảnh báo khi có tham số hàm không dùng */,
+    "noImplicitReturns": true /* Bắt buộc hàm phải return rõ ràng ở mọi nhánh logic */,
+
+    /* 3. Module Resolution */
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["src/*"]
+    },
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true /* Tránh lỗi khi chạy trên Windows (ko phân biệt hoa thường) và Linux (có phân biệt) */,
+
+    /* 4. Advanced Options */
+    "skipLibCheck": true,
+    "resolveJsonModule": true /* Cho phép import file .json trực tiếp */,
+    "removeComments": true /* Xóa comment khi build để file dist nhẹ hơn */,
+    "sourceMap": true /* Tạo file .map để bạn có thể debug trực tiếp trên code TS khi chạy dist */
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "transpileOnly": true /* Giúp ts-node chạy nhanh hơn đáng kể khi development */
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.test.ts"] /* Loại bỏ node_modules và file test khỏi quá trình build */
+}
