@@ -79,6 +79,8 @@ export const USERS_MESSAGES = {
   FORGOT_PASSWORD_TOKEN_NOT_MATCH: 'Forgot password token not match',
 
   /* --- SUCCESS MESSAGES (THÔNG BÁO THÀNH CÔNG) --- */
+  REGISTER_SUCCESS: 'Register success',
+  LOGIN_SUCCESS: 'Login success',
   LOGOUT_SUCCESS: 'Logout success',
   EMAIL_VERIFY_SUCCESS: 'Email verify success',
   RESEND_VERIFY_EMAIL_SUCCESS: 'Resend verify email success',
