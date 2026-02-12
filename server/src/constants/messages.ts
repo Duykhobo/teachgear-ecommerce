@@ -73,6 +73,7 @@ export const USERS_MESSAGES = {
   ACCESS_TOKEN_IS_REQUIRED: 'Access token is required',
   REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
   REFRESH_TOKEN_IS_INVALID: 'Refresh token is invalid',
+  REFRESH_TOKEN_IS_USED_OR_NOT_EXIST: 'Refresh token is used or not exist',
 
   // Verify Tokens (Email & Forgot Password)
   EMAIL_VERIFY_TOKEN_IS_REQUIRED: 'Email verify token is required',

@@ -4,7 +4,7 @@ import { TokenType } from '~/constants/enums'
 import ms from 'ms'
 import { RegisterReqBody } from '~/models/requests/auth.requests'
 import { ObjectId } from 'mongodb'
-import User from '~/models/schemas/user.schemas'
+import User from '~/models/schemas/User.schema'
 import { comparePassword, hashPassword } from '~/utils/crypto'
 import RefreshToken from '~/models/schemas/requestToken.schemas'
 import HTTP_STATUS from '~/constants/httpStatus'
@@ -68,12 +68,12 @@ class AuthService {
     const email_verify_token = await this.signEmailVerifyToken(user_id.toString())
     await databaseServices.users.insertOne(
       new User({
-        ...payload,
         _id: user_id,
         email_verify_token,
-        username: `user_${user_id.toString().slice(-4)}`,
         date_of_birth: new Date(payload.date_of_birth),
-        password: await hashPassword(payload.password)
+        password: await hashPassword(payload.password),
+        name: payload.name,
+        email: payload.email
       })
     )
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id.toString())
@@ -129,6 +129,24 @@ class AuthService {
       access_token,
       refresh_token
     }
+  }
+  async logout(refresh_token: string) {
+    await databaseServices.refreshTokens.deleteOne({ token: refresh_token })
+    return true
+  }
+
+  async checkRefreshToken({ user_id, refresh_token }: { user_id: string; refresh_token: string }) {
+    const result = await databaseServices.refreshTokens.findOne({
+      user_id: new ObjectId(user_id),
+      token: refresh_token
+    })
+    if (!result) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.REFRESH_TOKEN_IS_INVALID,
+        status: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+    return result
   }
 }
 
