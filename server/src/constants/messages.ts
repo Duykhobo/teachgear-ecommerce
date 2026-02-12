@@ -10,6 +10,7 @@ export const USERS_MESSAGES = {
   // Email Validation
   EMAIL_IS_REQUIRED: 'Email is required',
   INVALID_EMAIL: 'Invalid email address',
+  EMAIL_NOT_FOUND: 'Email not found',
 
   //Image Validation
   IMAGE_URL_LENGTH_MUST_BE_LESS_THAN_400: 'Image URL length must be less than 400',
@@ -21,6 +22,7 @@ export const USERS_MESSAGES = {
   PASSWORD_LENGTH_MUST_BE_FROM_8_TO_50: 'Password length must be from 8 to 50',
   PASSWORD_MUST_BE_STRONG:
     'Password must be at least 8 characters long and contain at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 symbol',
+  PASSWORD_IS_INCORRECT: 'Password is incorrect',
 
   // Confirm Password Validation
   CONFIRM_PASSWORD_IS_REQUIRED: 'Confirm password is required',

@@ -1,4 +1,3 @@
-import { RegisterReqBody } from '~/models/requests/auth.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { Request, Response } from 'express'
 import databaseServices from '~/services/database.services'
@@ -6,9 +5,11 @@ import { ErrorWithStatus } from '~/models/Errors'
 import { USERS_MESSAGES } from '~/constants/messages'
 import HTTP_STATUS from '~/constants/httpStatus'
 import authService from '~/services/auth.services'
+import { hashPassword } from '~/utils/crypto'
+import { LoginInput, RegisterInput } from '~/models/schemas/auth.schemas'
 
 //1. register controller
-export const registerController = async (req: Request<ParamsDictionary, any, RegisterReqBody>, res: Response) => {
+export const registerController = async (req: Request<ParamsDictionary, any, RegisterInput>, res: Response) => {
   const isEmailExist = await databaseServices.users.findOne({ email: req.body.email })
   if (isEmailExist) {
     throw new ErrorWithStatus({
@@ -19,6 +20,16 @@ export const registerController = async (req: Request<ParamsDictionary, any, Reg
   const result = await authService.register(req.body)
   return res.status(HTTP_STATUS.CREATED).json({
     message: USERS_MESSAGES.REGISTER_SUCCESS,
+    result
+  })
+}
+// 2. login controller
+export const loginController = async (req: Request<ParamsDictionary, any, LoginInput>, res: Response) => {
+  const { email, password } = req.body
+  const result = await authService.login(email, password)
+
+  return res.json({
+    message: USERS_MESSAGES.LOGIN_SUCCESS,
     result
   })
 }

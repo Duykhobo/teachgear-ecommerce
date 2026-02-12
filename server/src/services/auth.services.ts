@@ -5,7 +5,7 @@ import ms from 'ms'
 import { RegisterReqBody } from '~/models/requests/auth.requests'
 import { ObjectId } from 'mongodb'
 import User from '~/models/schemas/user.schemas'
-import { hashPassword } from '~/utils/crypto'
+import { comparePassword, hashPassword } from '~/utils/crypto'
 import RefreshToken from '~/models/schemas/requestToken.schemas'
 import HTTP_STATUS from '~/constants/httpStatus'
 import { USERS_MESSAGES } from '~/constants/messages'
@@ -103,6 +103,32 @@ class AuthService {
       })
     }
     return user
+  }
+
+  async login(email: string, password: string) {
+    const user = await databaseServices.users.findOne({ email })
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.EMAIL_NOT_FOUND,
+        status: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+    const isMatch = await comparePassword(password, user.password)
+    if (!isMatch) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.PASSWORD_IS_INCORRECT,
+        status: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+    const user_id = user._id.toString()
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    await databaseServices.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    )
+    return {
+      access_token,
+      refresh_token
+    }
   }
 }
 
