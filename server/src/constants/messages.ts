@@ -95,5 +95,13 @@ export const USERS_MESSAGES = {
   CHANGE_PASSWORD_SUCCESS: 'Change password success',
   REFRESH_TOKEN_SUCCESS: 'Refresh token success',
   UPLOAD_IMAGE_SUCCESS: 'Upload image success',
-  UPLOAD_VIDEO_SUCCESS: 'Upload video success'
+  UPLOAD_VIDEO_SUCCESS: 'Upload video success',
+
+  /* --- PRODUCT & CART --- */
+  PRODUCT_NOT_FOUND: 'Product not found',
+  OUT_OF_STOCK: 'Product out of stock',
+  OVER_STOCK_QUANTITY: 'Over stock quantity',
+  ADD_TO_CART_SUCCESS: 'Add to cart success',
+  GET_CART_SUCCESS: 'Get cart success',
+  INVALID_QUANTITY: 'Invalid quantity'
 } as const

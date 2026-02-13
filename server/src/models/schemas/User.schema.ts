@@ -10,6 +10,11 @@ interface Address {
   is_default: boolean
 }
 
+interface CartItemType {
+  product_id: ObjectId
+  quantity: number
+}
+
 interface UserType {
   _id?: ObjectId
   name: string
@@ -25,6 +30,7 @@ interface UserType {
   phone_number?: string
   addresses?: Address[]
   avatar?: string
+  cart?: CartItemType[]
 }
 
 export default class User {
@@ -42,6 +48,7 @@ export default class User {
   phone_number?: string
   addresses: Address[]
   avatar?: string
+  cart?: CartItemType[]
 
   constructor(user: UserType) {
     const date = new Date()
@@ -59,5 +66,6 @@ export default class User {
     this.phone_number = user.phone_number || undefined
     this.addresses = user.addresses || []
     this.avatar = user.avatar || undefined
+    this.cart = user.cart || []
   }
 }

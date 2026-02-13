@@ -15,9 +15,9 @@ interface ProductType {
   name: string
   price: number
   description?: string
-  stockQuantity?: number
+  stock_quantity?: number
   category: CategoryType['_id']
-  soldQuantity?: number
+  sold_quantity?: number
   images?: ProductImageType[]
 }
 
@@ -26,9 +26,9 @@ export default class Product {
   name: string
   price: number
   description?: string
-  stockQuantity?: number
+  stock_quantity?: number
   category: CategoryType['_id']
-  soldQuantity?: number
+  sold_quantity?: number
   images?: ProductImageType[]
 
   constructor(product: ProductType) {
@@ -36,9 +36,9 @@ export default class Product {
     this.name = product.name
     this.price = product.price
     this.description = product.description || undefined
-    this.stockQuantity = product.stockQuantity || 0
+    this.stock_quantity = product.stock_quantity || 0
     this.category = product.category
-    this.soldQuantity = product.soldQuantity || 0
+    this.sold_quantity = product.sold_quantity || 0
     this.images = product.images || []
   }
 }

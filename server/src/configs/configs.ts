@@ -35,6 +35,7 @@ export const configSchema = z.object({
   DB_NAME: z.string(),
   DB_USERS_COLLECTION: z.string(),
   DB_REFRESH_TOKENS_COLLECTION: z.string(),
+  DB_PRODUCTS_COLLECTION: z.string(),
 
   PASSWORD_SECRET: z.string(),
 
