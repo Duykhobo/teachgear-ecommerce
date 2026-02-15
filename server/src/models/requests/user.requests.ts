@@ -18,3 +18,10 @@ export interface AddToCartReqBody {
   product_id: string
   quantity: number
 }
+
+export interface CreateOrderReqBody {
+  address: string
+  phone_number: string
+  receiver_name: string
+  payment_method: string
+}

@@ -4,13 +4,14 @@ import User from '~/models/schemas/User.schema'
 import RefreshToken from '~/models/schemas/RequestToken.schemas'
 import Product from '~/models/schemas/Product.shemas'
 import { envConfig } from '~/configs/configs'
+import Order from '~/models/schemas/Order.schemas'
 
 dotenv.config()
 
 const uri = envConfig.MONGODB_URI
 
 class DatabaseService {
-  private client: MongoClient
+  public client: MongoClient
   private db: Db //tạo thành thuộc tình db
   constructor() {
     this.client = new MongoClient(uri)
@@ -37,6 +38,10 @@ class DatabaseService {
 
   get products(): Collection<Product> {
     return this.db.collection(envConfig.DB_PRODUCTS_COLLECTION as string)
+  }
+
+  get orders(): Collection<Order> {
+    return this.db.collection(envConfig.DB_ORDERS_COLLECTION as string)
   }
 }
 

@@ -103,5 +103,17 @@ export const USERS_MESSAGES = {
   OVER_STOCK_QUANTITY: 'Over stock quantity',
   ADD_TO_CART_SUCCESS: 'Add to cart success',
   GET_CART_SUCCESS: 'Get cart success',
-  INVALID_QUANTITY: 'Invalid quantity'
+  INVALID_QUANTITY: 'Invalid quantity',
+  CART_IS_EMPTY: 'Cart is empty',
+  CREATE_ORDER_SUCCESS: 'Create order success',
+  ADDRESS_IS_REQUIRED: 'Address is required',
+  ADDRESS_MUST_BE_STRING: 'Address must be string',
+  ADDRESS_LENGTH_MUST_BE_AT_LEAST_5_CHARACTERS: 'Address length must be at least 5 characters',
+  PHONE_NUMBER_IS_REQUIRED: 'Phone number is required',
+  PHONE_NUMBER_MUST_BE_STRING: 'Phone number must be string',
+  PHONE_NUMBER_IS_INVALID: 'Phone number is invalid',
+  RECEIVER_NAME_IS_REQUIRED: 'Receiver name is required',
+  RECEIVER_NAME_MUST_BE_STRING: 'Receiver name must be string',
+  PAYMENT_METHOD_IS_REQUIRED: 'Payment method is required',
+  PAYMENT_METHOD_MUST_BE_STRING: 'Payment method must be string'
 } as const

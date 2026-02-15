@@ -12,6 +12,7 @@ const app = express() //tạo server
 const PORT = process.env.PORT || 3000 //server chạy trên cổng port 3000
 
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 //tạo router
 

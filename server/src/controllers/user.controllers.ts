@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { AddToCartReqBody } from '~/models/requests/user.requests'
+import { AddToCartReqBody, CreateOrderReqBody } from '~/models/requests/user.requests'
 import { TokenPayload } from '~/models/requests/auth.requests'
 import usersService from '~/services/users.services'
 import { ParamsDictionary } from 'express-serve-static-core'
@@ -27,5 +27,15 @@ export const getCartController = async (
 ) => {
   const { user_id } = req.decoded_authorization as TokenPayload
   const result = await usersService.getCart(user_id)
+  return res.status(HTTP_STATUS.OK).json({ data: result })
+} 
+
+export const createOrderController = async (
+  req: Request<ParamsDictionary, any, CreateOrderReqBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const result = await usersService.createOrder(user_id, req.body)
   return res.status(HTTP_STATUS.OK).json({ data: result })
 }
