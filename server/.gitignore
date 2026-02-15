@@ -145,5 +145,6 @@ dist
 node_modules/
 dist/
 build/
+.env.development
 
 # End of https://www.toptal.com/developers/gitignore/api/node
