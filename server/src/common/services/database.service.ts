@@ -1,7 +1,7 @@
 import { Collection, Db, MongoClient } from 'mongodb'
 import dotenv from 'dotenv'
 import User from '~/modules/users/users.schema'
-import RefreshToken from '~/modules/auth/refreshToken.schema'
+import RefreshToken from '~/modules/auth/auth.schema'
 import Product from '~/models/schemas/Product.shemas'
 import { envConfig } from '~/common/configs/configs'
 import Order from '~/models/schemas/Order.schemas'

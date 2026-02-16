@@ -6,14 +6,17 @@ import { verifyToken } from '~/common/utils/jwt'
 import { envConfig } from '~/common/configs/configs'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { capitalize } from 'lodash'
-import databaseServices from '~/common/services/database.service'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { LogoutReqBody } from '~/modules/auth/auth.interface'
+import { RefreshTokenSchema } from '~/modules/auth/auth.schema'
+import { validate } from '~/common/utils/validation'
 
-export const accessTokenValidator = async (req: Request, _res: Response, next: NextFunction) => {
+export const accessTokenValidator = async (
+  req: Request<ParamsDictionary, any, any>,
+  _res: Response,
+  next: NextFunction
+) => {
   const { authorization } = req.headers
 
-  // 1. Check tồn tại và format cơ bản
   if (!authorization?.trim()) {
     throw new ErrorWithStatus({
       message: USERS_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
@@ -22,7 +25,6 @@ export const accessTokenValidator = async (req: Request, _res: Response, next: N
   }
 
   try {
-    // 2. Tách token an toàn hơn
     const parts = authorization.split(' ')
     if (parts.length !== 2 || parts[0] !== 'Bearer') {
       throw new ErrorWithStatus({
@@ -48,48 +50,5 @@ export const accessTokenValidator = async (req: Request, _res: Response, next: N
     next(error)
   }
 }
+export const refreshTokenValidator = validate(RefreshTokenSchema)
 
-export const refreshTokenValidator = async (
-  req: Request<ParamsDictionary, any, LogoutReqBody>,
-  _res: Response,
-  next: NextFunction
-) => {
-  const { refresh_token } = req.body
-  if (!refresh_token) {
-    throw new ErrorWithStatus({
-      message: USERS_MESSAGES.REFRESH_TOKEN_IS_REQUIRED,
-      status: HTTP_STATUS.UNAUTHORIZED
-    })
-  }
-
-  try {
-    const [decoded_refresh_token, refreshToken] = await Promise.all([
-      verifyToken({ token: refresh_token, privateKey: envConfig.JWT_SECRET_REFRESH_TOKEN as string }),
-      databaseServices.refreshTokens.findOne({ token: refresh_token })
-    ])
-
-    if (decoded_refresh_token === null) {
-      throw new ErrorWithStatus({
-        message: USERS_MESSAGES.REFRESH_TOKEN_IS_INVALID,
-        status: HTTP_STATUS.UNAUTHORIZED
-      })
-    }
-    if (refreshToken === null) {
-      throw new ErrorWithStatus({
-        message: USERS_MESSAGES.REFRESH_TOKEN_IS_USED_OR_NOT_EXIST,
-        status: HTTP_STATUS.UNAUTHORIZED
-      })
-    }
-
-    ;(req as Request).decoded_refresh_token = decoded_refresh_token
-    next()
-  } catch (error) {
-    if (error instanceof JsonWebTokenError) {
-      throw new ErrorWithStatus({
-        message: capitalize(error.message),
-        status: HTTP_STATUS.UNAUTHORIZED
-      })
-    }
-    next(error)
-  }
-}

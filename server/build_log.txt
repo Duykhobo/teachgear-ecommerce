@@ -1,0 +1,13 @@
+
+> server@1.0.0 build
+> rimraf dist && tsc && tsc-alias
+
+src/common/utils/jwt.ts(3,30): error TS2307: Cannot find module '~/modules/auth/auth.interface' or its corresponding type declarations.
+src/modules/auth/auth.service.ts(6,3): error TS6133: 'EmailVerifyInput' is declared but its value is never read.
+src/modules/auth/auth.service.ts(7,3): error TS6133: 'ForgotPasswordInput' is declared but its value is never read.
+src/modules/auth/auth.service.ts(8,3): error TS6133: 'LoginInput' is declared but its value is never read.
+src/modules/auth/auth.service.ts(10,3): error TS6133: 'ResetPasswordInput' is declared but its value is never read.
+src/modules/auth/auth.service.ts(11,3): error TS6133: 'VerifyForgotPasswordTokenInput' is declared but its value is never read.
+src/modules/auth/auth.service.ts(16,24): error TS6133: 'TokenPayload' is declared but its value is never read.
+src/modules/users/users.controller.ts(4,30): error TS2307: Cannot find module '~/modules/auth/auth.interface' or its corresponding type declarations.
+src/modules/users/users.middleware.ts(7,30): error TS2307: Cannot find module '~/modules/auth/auth.interface' or its corresponding type declarations.

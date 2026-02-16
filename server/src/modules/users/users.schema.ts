@@ -1,5 +1,56 @@
+import { z } from 'zod'
 import { ObjectId } from 'mongodb'
 import { USER_ROLE, UserVerifyStatus } from '~/common/constants/enums'
+import { USERS_MESSAGES } from '~/common/constants/messages'
+
+// --- Body Schemas ---
+export const AddToCartBodySchema = z.object({
+  product_id: z.string().trim().min(1),
+  quantity: z.number().int().positive()
+})
+
+export const UpdateMeBodySchema = z.object({
+  name: z.string().trim().optional(),
+  date_of_birth: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: USERS_MESSAGES.INVALID_DATE_OF_BIRTH
+    })
+    .optional(),
+  bio: z.string().trim().optional(),
+  location: z.string().trim().optional(),
+  website: z.string().trim().optional(),
+  username: z.string().trim().optional(),
+  avatar: z.string().trim().optional(),
+  cover_photo: z.string().trim().optional()
+})
+
+export const ChangePasswordBodySchema = z
+  .object({
+    old_password: z.string().min(8),
+    password: z.string().min(8),
+    confirm_password: z.string().min(8)
+  })
+  .strict()
+  .superRefine(({ confirm_password, password }, ctx) => {
+    if (confirm_password !== password) {
+      ctx.addIssue({
+        code: 'custom',
+        message: USERS_MESSAGES.CONFIRM_PASSWORD_NOT_MATCH,
+        path: ['confirm_password']
+      })
+    }
+  })
+
+// --- Request Schemas (for middleware) ---
+export const AddToCartSchema = z.object({ body: AddToCartBodySchema })
+export const UpdateMeSchema = z.object({ body: UpdateMeBodySchema })
+export const ChangePasswordSchema = z.object({ body: ChangePasswordBodySchema })
+
+// --- Types ---
+export type AddToCartReqBody = z.infer<typeof AddToCartBodySchema>
+export type UpdateMeReqBody = z.infer<typeof UpdateMeBodySchema>
+export type ChangePasswordReqBody = z.infer<typeof ChangePasswordBodySchema>
 
 interface Address {
   street: string

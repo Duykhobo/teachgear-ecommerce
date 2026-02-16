@@ -4,6 +4,7 @@ import { defaultErrorHandler } from './common/middlewares/error.middleware'
 import dotenv from 'dotenv'
 import authRoutes from './modules/auth/auth.route'
 import userRoutes from './modules/users/users.route'
+import orderRoutes from './modules/orders/orders.route'
 
 dotenv.config()
 
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true }))
 databaseServices.connect()
 app.use('/auth', authRoutes)
 app.use('/users', userRoutes)
+app.use('/orders', orderRoutes)
 
 app.use(defaultErrorHandler)
 app.listen(PORT, () => {

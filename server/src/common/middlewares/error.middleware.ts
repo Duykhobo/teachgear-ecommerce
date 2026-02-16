@@ -4,6 +4,14 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { ErrorWithStatus } from '~/common/models/Errors'
 
 export const defaultErrorHandler = (err: any, _req: Request, res: Response, _next: NextFunction) => {
+  // Handle JSON parse errors from express.json()
+  if (err instanceof SyntaxError && 'body' in err && (err as any).type === 'entity.parse.failed') {
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({
+      message: 'Invalid JSON format. Please check your request body for missing quotes or syntax errors.',
+      errorInfor: omit(err, ['stack'])
+    })
+  }
+
   //err là lỗi từ các nơi khác truyền xuống, và ta đã quy ước lỗi phải là 1 object có 2 thuộc tính: status và message
   if (err instanceof ErrorWithStatus) {
     //nếu err là 1 instance của ErrorWithStatus

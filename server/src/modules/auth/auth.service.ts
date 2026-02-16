@@ -1,16 +1,17 @@
-import { signToken } from '~/common/utils/jwt'
+import { signToken, verifyToken } from '~/common/utils/jwt'
 import databaseServices from '~/common/services/database.service'
 import { TokenType } from '~/common/constants/enums'
 import ms from 'ms'
-import { RegisterReqBody } from '~/modules/auth/auth.interface'
+import { LoginReqBody, RegisterReqBody, TokenPayload } from '~/modules/auth/auth.schema'
 import { ObjectId } from 'mongodb'
 import User from '~/modules/users/users.schema'
 import { comparePassword, hashPassword } from '~/common/utils/crypto'
-import RefreshToken from '~/modules/auth/refreshToken.schema'
+import RefreshToken from '~/modules/auth/auth.schema'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import { envConfig } from '~/common/configs/configs'
+import { LogoutReqBody } from './auth.schema'
 
 class AuthService {
   private signAccessToken(user_id: string) {
@@ -106,7 +107,9 @@ class AuthService {
     return user
   }
 
-  async login(email: string, password: string) {
+  async login(payload: LoginReqBody) {
+    const email = payload.email.trim()
+    const password = payload.password.trim()
     const user = await databaseServices.users.findOne({ email })
     if (!user) {
       throw new ErrorWithStatus({
@@ -131,7 +134,52 @@ class AuthService {
       refresh_token
     }
   }
-  async logout(refresh_token: string) {
+  async refreshToken({ refresh_token }: { refresh_token: string }) {
+    const [decoded_refresh_token, refreshToken] = await Promise.all([
+      verifyToken({ token: refresh_token, privateKey: envConfig.JWT_SECRET_REFRESH_TOKEN as string }),
+      databaseServices.refreshTokens.findOne({ token: refresh_token })
+    ])
+    if (!decoded_refresh_token) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.REFRESH_TOKEN_IS_INVALID,
+        status: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+    if (!refreshToken) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.REFRESH_TOKEN_IS_USED_OR_NOT_EXIST,
+        status: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+    const { user_id } = decoded_refresh_token as TokenPayload
+    const [new_access_token, new_refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    await databaseServices.refreshTokens.deleteOne({ token: refresh_token })
+    await databaseServices.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: new_refresh_token })
+    )
+    return {
+      access_token: new_access_token,
+      refresh_token: new_refresh_token
+    }
+  }
+
+  async logout({ user_id, refresh_token }: { user_id: string; refresh_token: string }) {
+    // Optional: Verify refresh_token again if strictness is needed,
+    // but at minimum check existence and ownership
+    const tokenDoc = await databaseServices.refreshTokens.findOne({ token: refresh_token })
+    if (!tokenDoc) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.REFRESH_TOKEN_IS_USED_OR_NOT_EXIST,
+        status: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+    // ownership check
+    if (tokenDoc.user_id.toString() !== user_id) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.REFRESH_TOKEN_IS_INVALID,
+        status: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
     await databaseServices.refreshTokens.deleteOne({ token: refresh_token })
     return true
   }
@@ -148,6 +196,17 @@ class AuthService {
       })
     }
     return result
+  }
+
+  async getUserStatus({ user_id }: { user_id: string }) {
+    const user = await databaseServices.users.findOne({ _id: new ObjectId(user_id) })
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.USER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+    return user.verify
   }
 }
 

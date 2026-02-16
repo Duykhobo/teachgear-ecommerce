@@ -7,17 +7,18 @@ export const validate = (schema: ZodTypeAny) => {
   return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       // 1. Chạy parse dữ liệu
-      await schema.parseAsync({
+      const result = await schema.parseAsync({
         body: req.body,
         query: req.query,
-        params: req.params
+        params: req.params,
+        headers: req.headers
       })
+      Object.assign(req, result)
 
       return next()
     } catch (error) {
-      const entityError = new EntityError({ errors: {} })
-
       if (error instanceof ZodError) {
+        const entityError = new EntityError({ errors: {} })
         for (const issue of error.issues) {
           const key = issue.path[issue.path.length - 1] as string
           const message = issue.message
