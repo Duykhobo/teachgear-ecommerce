@@ -7,8 +7,11 @@ import { USERS_MESSAGES } from '~/common/constants/messages'
 // --- Common Schemas ---
 const passwordSchema = z
   .string()
-  .min(8, { message: USERS_MESSAGES.PASSWORD_MUST_BE_AT_LEAST_8_CHARACTERS })
-  .max(50, { message: USERS_MESSAGES.PASSWORD_MUST_BE_LESS_THAN_50_CHARACTERS })
+  .min(8, { message: USERS_MESSAGES.PASSWORD_LENGTH_MUST_BE_FROM_8_TO_50 })
+  .max(50, { message: USERS_MESSAGES.PASSWORD_LENGTH_MUST_BE_FROM_8_TO_50 })
+  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/, {
+    message: USERS_MESSAGES.PASSWORD_MUST_BE_STRONG
+  })
 
 const emailSchema = z.string().email({ message: USERS_MESSAGES.INVALID_EMAIL })
 
@@ -18,7 +21,7 @@ export const RegisterBodySchema = z
     name: z.string().trim().min(1, { message: USERS_MESSAGES.NAME_IS_REQUIRED }),
     email: emailSchema,
     password: passwordSchema,
-    confirm_password: z.string().min(8),
+    confirm_password: z.string().min(8, { message: USERS_MESSAGES.PASSWORD_MUST_BE_AT_LEAST_8_CHARACTERS }),
     date_of_birth: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: USERS_MESSAGES.INVALID_DATE_OF_BIRTH
     })
@@ -52,12 +55,12 @@ export const ForgotPasswordBodySchema = z.object({
 })
 
 export const VerifyForgotPasswordTokenBodySchema = z.object({
-  forgot_password_token: z.string().trim().min(1)
+  forgot_password_token: z.string().trim().min(1, { message: USERS_MESSAGES.FORGOT_PASSWORD_TOKEN_IS_REQUIRED })
 })
 
 export const ResetPasswordBodySchema = z
   .object({
-    forgot_password_token: z.string().trim().min(1),
+    forgot_password_token: z.string().trim().min(1, { message: USERS_MESSAGES.FORGOT_PASSWORD_TOKEN_IS_REQUIRED }),
     password: passwordSchema,
     confirm_password: z.string().min(8)
   })
@@ -74,7 +77,7 @@ export const ResetPasswordBodySchema = z
 
 // --- Query Schemas ---
 export const EmailVerifyQuerySchema = z.object({
-  email_verify_token: z.string().trim().min(1)
+  email_verify_token: z.string().trim().min(1, { message: USERS_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED })
 })
 
 // --- Request Schemas (for middleware) ---
@@ -95,7 +98,7 @@ export type RefreshTokenReqBody = z.infer<typeof RefreshTokenBodySchema>
 export type ForgotPasswordReqBody = z.infer<typeof ForgotPasswordBodySchema>
 export type VerifyForgotPasswordTokenReqBody = z.infer<typeof VerifyForgotPasswordTokenBodySchema>
 export type ResetPasswordReqBody = z.infer<typeof ResetPasswordBodySchema>
-export type EmailVerifyReqBody = z.infer<typeof EmailVerifyQuerySchema>
+export type EmailVerifyReqQuery = z.infer<typeof EmailVerifyQuerySchema>
 // --- Models ---
 
 export interface TokenPayload extends JwtPayload {

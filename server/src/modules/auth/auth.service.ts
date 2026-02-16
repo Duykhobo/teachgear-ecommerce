@@ -1,8 +1,8 @@
-import { signToken, verifyToken } from '~/common/utils/jwt'
+import { signToken } from '~/common/utils/jwt'
 import databaseServices from '~/common/services/database.service'
-import { TokenType } from '~/common/constants/enums'
+import { TokenType, UserVerifyStatus } from '~/common/constants/enums'
 import ms from 'ms'
-import { LoginReqBody, RegisterReqBody, TokenPayload } from '~/modules/auth/auth.schema'
+import { ForgotPasswordReqBody, LoginReqBody, RegisterReqBody } from '~/modules/auth/auth.schema'
 import { ObjectId } from 'mongodb'
 import User from '~/modules/users/users.schema'
 import { comparePassword, hashPassword } from '~/common/utils/crypto'
@@ -11,7 +11,7 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import { envConfig } from '~/common/configs/configs'
-import { LogoutReqBody } from './auth.schema'
+import emailService from '~/common/services/email.service'
 
 class AuthService {
   private signAccessToken(user_id: string) {
@@ -49,12 +49,11 @@ class AuthService {
   }
 
   //method tạo forgot password token
-  // @ts-ignore
-  private _signForgotPasswordToken(user_id: string) {
+  private signForgotPasswordToken(user_id: string) {
     return signToken({
       payload: { user_id, token_type: TokenType.ForgotPasswordToken },
       options: { expiresIn: envConfig.FORGOT_PASSWORD_TOKEN_EXPIRE_IN as ms.StringValue },
-      privateKey: envConfig.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string //thêm
+      privateKey: envConfig.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
     })
   }
   async checkExistEmail(email: string): Promise<boolean> {
@@ -85,8 +84,9 @@ class AuthService {
         token: refresh_token
       })
     )
-    // TODO: Gửi email thật ở đây (Sẽ làm ở bài Mail Service)
-    console.log(`Link xác thực: ${envConfig.CLIENT_URL}/verify-email?token=${email_verify_token}`)
+    // Send verify email
+    await emailService.sendVerifyEmail(payload.email, email_verify_token)
+
     return {
       access_token,
       refresh_token
@@ -94,17 +94,17 @@ class AuthService {
   }
 
   async checkEmailVerifyToken({ user_id, email_verify_token }: { user_id: string; email_verify_token: string }) {
-    const user = await databaseServices.users.findOne({
-      email_verify_token,
-      _id: new ObjectId(user_id)
+    const result = await databaseServices.users.findOne({
+      _id: new ObjectId(user_id),
+      email_verify_token
     })
-    if (!user) {
+    if (!result) {
       throw new ErrorWithStatus({
-        message: USERS_MESSAGES.EMAIL_VERIFY_TOKEN_IS_INVALID,
-        status: HTTP_STATUS.UNPROCESSABLE_ENTITY
+        message: USERS_MESSAGES.USER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
       })
     }
-    return user
+    return result
   }
 
   async login(payload: LoginReqBody) {
@@ -134,24 +134,17 @@ class AuthService {
       refresh_token
     }
   }
-  async refreshToken({ refresh_token }: { refresh_token: string }) {
-    const [decoded_refresh_token, refreshToken] = await Promise.all([
-      verifyToken({ token: refresh_token, privateKey: envConfig.JWT_SECRET_REFRESH_TOKEN as string }),
-      databaseServices.refreshTokens.findOne({ token: refresh_token })
-    ])
-    if (!decoded_refresh_token) {
-      throw new ErrorWithStatus({
-        message: USERS_MESSAGES.REFRESH_TOKEN_IS_INVALID,
-        status: HTTP_STATUS.UNAUTHORIZED
-      })
-    }
+  async refreshToken({ user_id, refresh_token }: { user_id: string; refresh_token: string }) {
+    // 2. Check DB
+    const refreshToken = await databaseServices.refreshTokens.findOne({ token: refresh_token })
     if (!refreshToken) {
       throw new ErrorWithStatus({
         message: USERS_MESSAGES.REFRESH_TOKEN_IS_USED_OR_NOT_EXIST,
         status: HTTP_STATUS.UNAUTHORIZED
       })
     }
-    const { user_id } = decoded_refresh_token as TokenPayload
+
+    // 3. Xoay vòng token
     const [new_access_token, new_refresh_token] = await this.signAccessAndRefreshToken(user_id)
     await databaseServices.refreshTokens.deleteOne({ token: refresh_token })
     await databaseServices.refreshTokens.insertOne(
@@ -198,7 +191,7 @@ class AuthService {
     return result
   }
 
-  async getUserStatus({ user_id }: { user_id: string }) {
+  async getUserStatus(user_id: string) {
     const user = await databaseServices.users.findOne({ _id: new ObjectId(user_id) })
     if (!user) {
       throw new ErrorWithStatus({
@@ -207,6 +200,101 @@ class AuthService {
       })
     }
     return user.verify
+  }
+
+  async forgotPassword(payload: ForgotPasswordReqBody) {
+    const user = await databaseServices.users.findOne({ email: payload.email })
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.USER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+    const forgot_password_token = await this.signForgotPasswordToken(user._id.toString())
+    await databaseServices.users.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          forgot_password_token
+        },
+        $currentDate: { updated_at: true }
+      }
+    )
+    // Send forgot password email
+    await emailService.sendForgotPasswordEmail(payload.email, forgot_password_token)
+    return {
+      message: USERS_MESSAGES.CHECK_EMAIL_TO_RESET_PASSWORD
+    }
+  }
+
+  async resetPassword({ user_id, password }: { user_id: string; password: string }) {
+    const user = await databaseServices.users.findOne({ _id: new ObjectId(user_id) })
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.USER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+    await databaseServices.users.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          password: await hashPassword(password),
+          forgot_password_token: ''
+        },
+        $currentDate: { updated_at: true }
+      }
+    )
+    return {
+      message: USERS_MESSAGES.RESET_PASSWORD_SUCCESS
+    }
+  }
+  async verifyEmail(user_id: string) {
+    await databaseServices.users.updateOne({ _id: new ObjectId(user_id) }, [
+      {
+        $set: {
+          verify: UserVerifyStatus.Verified,
+          email_verify_token: '',
+          updated_at: '$$NOW'
+        }
+      }
+    ])
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    await databaseServices.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    )
+    return {
+      access_token,
+      refresh_token
+    }
+  }
+  async resendEmailVerify(user_id: string) {
+    const user = await databaseServices.users.findOne({ _id: new ObjectId(user_id) })
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.USER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+    if (user.verify === UserVerifyStatus.Verified) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.EMAIL_HAS_BEEN_VERIFIED,
+        status: HTTP_STATUS.BAD_REQUEST
+      })
+    }
+    const email_verify_token = await this.signEmailVerifyToken(user_id)
+    await databaseServices.users.updateOne({ _id: new ObjectId(user_id) }, [
+      {
+        $set: {
+          email_verify_token,
+          updated_at: '$$NOW'
+        }
+      }
+    ])
+    await emailService.sendVerifyEmail(user.email, email_verify_token)
+    return {
+      message: USERS_MESSAGES.RESEND_VERIFY_EMAIL_SUCCESS
+    }
   }
 }
 

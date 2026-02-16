@@ -51,7 +51,16 @@ export const configSchema = z.object({
   FORGOT_PASSWORD_TOKEN_EXPIRE_IN: z.string(),
 
   // Client URL để gửi mail link verify (tránh hardcode localhost)
-  CLIENT_URL: z.string().default('http://localhost:3000')
+  CLIENT_URL: z.string().default('http://localhost:3000'),
+
+  // Email Service (AWS SES or Gmail)
+  SMTP_HOST: z.string(),
+  SMTP_PORT: z.coerce.number(),
+  SMTP_USERNAME: z.string(),
+  SMTP_PASSWORD: z.string(),
+  EMAIL_FROM_ADDRESS: z.string(),
+  EMAIL_FROM_NAME: z.string(),
+  AWS_SES_REGION: z.string().optional()
 })
 
 // Validate process.env

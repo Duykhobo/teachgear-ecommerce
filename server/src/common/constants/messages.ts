@@ -24,6 +24,19 @@ export const USERS_MESSAGES = {
     'Password must be at least 8 characters long and contain at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 symbol',
   PASSWORD_IS_INCORRECT: 'Password is incorrect',
 
+  // Bio Validation
+  BIO_MUST_BE_A_STRING: 'Bio must be a string',
+  BIO_LENGTH_MUST_BE_LESS_THAN_200: 'Bio length must be less than 200',
+  // Location Validation
+  LOCATION_MUST_BE_A_STRING: 'Location must be a string',
+  LOCATION_LENGTH_MUST_BE_LESS_THAN_200: 'Location length must be less than 200',
+  // Website Validation
+  WEBSITE_MUST_BE_A_STRING: 'Website must be a string',
+  WEBSITE_LENGTH_MUST_BE_LESS_THAN_200: 'Website length must be less than 200',
+  // Username Validation
+  USERNAME_MUST_BE_A_STRING: 'Username must be a string',
+  USERNAME_LENGTH_MUST_BE_LESS_THAN_50: 'Username length must be less than 50',
+
   // Confirm Password Validation
   CONFIRM_PASSWORD_IS_REQUIRED: 'Confirm password is required',
   CONFIRM_PASSWORD_MUST_BE_A_STRING: 'Confirm password must be a string',
@@ -35,20 +48,6 @@ export const USERS_MESSAGES = {
   // Date Validation
   DATE_OF_BIRTH_BE_ISO8601: 'Date of birth must be ISO8601',
 
-  //Bio Validation
-  BIO_MUST_BE_A_STRING: 'Bio must be a string',
-  BIO_LENGTH_MUST_BE_LESS_THAN_200: 'Bio length must be less than 200',
-  //Location Validation
-  LOCATION_MUST_BE_A_STRING: 'Location must be a string',
-  LOCATION_LENGTH_MUST_BE_LESS_THAN_200: 'Location length must be less than 200',
-
-  //Website Validation
-  WEBSITE_MUST_BE_A_STRING: 'Website must be a string',
-  WEBSITE_LENGTH_MUST_BE_LESS_THAN_200: 'Website length must be less than 200',
-
-  //Username Validation
-  USERNAME_MUST_BE_A_STRING: 'Username must be a string',
-  USERNAME_LENGTH_MUST_BE_LESS_THAN_50: 'Username length must be less than 50',
   USERNAME_ALREADY_EXISTS: 'Username already exists',
   USERNAME_IS_INVALID: 'Username is invalid',
 

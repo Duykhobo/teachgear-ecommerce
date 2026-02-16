@@ -9,20 +9,55 @@ export const AddToCartBodySchema = z.object({
   quantity: z.number().int().positive()
 })
 
+export const NameSchema = z
+  .string()
+  .trim()
+  .min(1, { message: USERS_MESSAGES.NAME_IS_REQUIRED })
+  .max(100, { message: USERS_MESSAGES.NAME_LENGTH_MUST_BE_FROM_1_TO_100 })
+
+export const DateOfBirthSchema = z.string().refine((val) => !isNaN(Date.parse(val)), {
+  message: USERS_MESSAGES.DATE_OF_BIRTH_BE_ISO8601
+})
+
+export const ImageSchema = z
+  .string()
+  .trim()
+  .max(400, { message: USERS_MESSAGES.IMAGE_URL_LENGTH_MUST_BE_LESS_THAN_400 })
+  .optional()
+
+export const BioSchema = z
+  .string()
+  .trim()
+  .max(200, { message: USERS_MESSAGES.BIO_LENGTH_MUST_BE_LESS_THAN_200 })
+  .optional()
+
+export const LocationSchema = z
+  .string()
+  .trim()
+  .max(200, { message: USERS_MESSAGES.LOCATION_LENGTH_MUST_BE_LESS_THAN_200 })
+  .optional()
+
+export const WebsiteSchema = z
+  .string()
+  .trim()
+  .max(200, { message: USERS_MESSAGES.WEBSITE_LENGTH_MUST_BE_LESS_THAN_200 })
+  .optional()
+
+export const UsernameSchema = z
+  .string()
+  .trim()
+  .max(50, { message: USERS_MESSAGES.USERNAME_LENGTH_MUST_BE_LESS_THAN_50 })
+  .optional()
+
 export const UpdateMeBodySchema = z.object({
-  name: z.string().trim().optional(),
-  date_of_birth: z
-    .string()
-    .refine((val) => !isNaN(Date.parse(val)), {
-      message: USERS_MESSAGES.INVALID_DATE_OF_BIRTH
-    })
-    .optional(),
-  bio: z.string().trim().optional(),
-  location: z.string().trim().optional(),
-  website: z.string().trim().optional(),
-  username: z.string().trim().optional(),
-  avatar: z.string().trim().optional(),
-  cover_photo: z.string().trim().optional()
+  name: NameSchema.optional(),
+  date_of_birth: DateOfBirthSchema.optional(),
+  bio: BioSchema,
+  location: LocationSchema,
+  website: WebsiteSchema,
+  username: UsernameSchema,
+  avatar: ImageSchema,
+  cover_photo: ImageSchema
 })
 
 export const ChangePasswordBodySchema = z
