@@ -99,21 +99,19 @@ export const resetPasswordController = async (
   return res.status(HTTP_STATUS.OK).json(result)
 }
 
-export const resendEmailVerifyController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+export const resendEmailVerifyController = async (req: Request, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload
   const verifyStatus = await authService.getUserStatus(user_id)
   if (verifyStatus === UserVerifyStatus.Verified) {
     return res.status(HTTP_STATUS.BAD_REQUEST).json({
       message: USERS_MESSAGES.EMAIL_HAS_BEEN_VERIFIED
     })
-  }
-  if (verifyStatus === UserVerifyStatus.Unverified) {
-    const result = await authService.resendEmailVerify(user_id)
-    return res.status(HTTP_STATUS.OK).json(result)
-  }
-  if (verifyStatus === UserVerifyStatus.Banned) {
+  } else if (verifyStatus === UserVerifyStatus.Banned) {
     return res.status(HTTP_STATUS.BAD_REQUEST).json({
       message: USERS_MESSAGES.ACCOUNT_HAS_BEEN_BANNED
     })
+  } else {
+    const result = await authService.resendEmailVerify(user_id)
+    return res.status(HTTP_STATUS.OK).json(result)
   }
 }

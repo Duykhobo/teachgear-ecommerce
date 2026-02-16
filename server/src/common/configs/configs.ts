@@ -4,21 +4,24 @@ import path from 'path'
 import { z } from 'zod'
 
 // Load biến môi trường từ file .env
-const env = process.env.NODE_ENV
-const envFilename = `.env${env ? `.${env}` : ''}`
+// Thứ tự ưu tiên: .env.{NODE_ENV}.local > .env.{NODE_ENV} > .env.local > .env
+const env = process.env.NODE_ENV || 'development'
+const envFiles = [
+  `.env.${env}.local`, // .env.development.local (dev), .env.production.local (prod)
+  `.env.${env}`, // .env.development (dev), .env.production (prod)
+  `.env.local`, // Luôn load, trừ khi test
+  `.env` // Fallback mặc định
+]
 
-if (!env) {
-  console.log(`Bạn chưa cung cấp biến môi trường NODE_ENV (ví dụ: development, production)`)
-  console.log(`Phát hiện NODE_ENV = ${env}`)
-  console.log(`Hệ thống sẽ tự động sử dụng file .env`)
-}
+const envFilename = envFiles.find((file) => fs.existsSync(path.resolve(file)))
 
-if (!fs.existsSync(path.resolve(envFilename))) {
-  console.log(`Không tìm thấy file ${envFilename}`)
-  console.log(`Lưu ý: App không dùng file .env, vui lòng tạo file ${envFilename}`)
-  console.log(`Vui lòng tham khảo file .env.example`)
+if (!envFilename) {
+  console.error('❌ Không tìm thấy file env nào trong danh sách:', envFiles.join(', '))
+  console.error('Vui lòng tạo ít nhất 1 file, tham khảo file .env.example')
   process.exit(1)
 }
+
+console.log(`✅ Đang sử dụng file: ${envFilename} (NODE_ENV=${env})`)
 
 config({
   path: envFilename
