@@ -1,16 +1,16 @@
-import { signToken } from '~/utils/jwt'
-import databaseServices from './database.services'
-import { TokenType } from '~/constants/enums'
+import { signToken } from '~/common/utils/jwt'
+import databaseServices from '~/common/services/database.service'
+import { TokenType } from '~/common/constants/enums'
 import ms from 'ms'
-import { RegisterReqBody } from '~/models/requests/auth.requests'
+import { RegisterReqBody } from '~/modules/auth/auth.interface'
 import { ObjectId } from 'mongodb'
-import User from '~/models/schemas/User.schema'
-import { comparePassword, hashPassword } from '~/utils/crypto'
-import RefreshToken from '~/models/schemas/requestToken.schemas'
-import HTTP_STATUS from '~/constants/httpStatus'
-import { USERS_MESSAGES } from '~/constants/messages'
-import { ErrorWithStatus } from '~/models/Errors'
-import { envConfig } from '~/configs/configs'
+import User from '~/modules/users/users.schema'
+import { comparePassword, hashPassword } from '~/common/utils/crypto'
+import RefreshToken from '~/modules/auth/refreshToken.schema'
+import HTTP_STATUS from '~/common/constants/httpStatus'
+import { USERS_MESSAGES } from '~/common/constants/messages'
+import { ErrorWithStatus } from '~/common/models/Errors'
+import { envConfig } from '~/common/configs/configs'
 
 class AuthService {
   private signAccessToken(user_id: string) {
@@ -48,7 +48,8 @@ class AuthService {
   }
 
   //method tạo forgot password token
-  private signForgotPasswordToken(user_id: string) {
+  // @ts-ignore
+  private _signForgotPasswordToken(user_id: string) {
     return signToken({
       payload: { user_id, token_type: TokenType.ForgotPasswordToken },
       options: { expiresIn: envConfig.FORGOT_PASSWORD_TOKEN_EXPIRE_IN as ms.StringValue },

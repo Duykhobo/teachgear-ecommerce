@@ -1,11 +1,11 @@
 import { ObjectId } from 'mongodb'
-import databaseServices from './database.services'
-import { AddToCartReqBody, CreateOrderReqBody } from '~/models/requests/user.requests'
-import { ErrorWithStatus } from '~/models/Errors'
-import { USERS_MESSAGES } from '~/constants/messages'
-import HTTP_STATUS from '~/constants/httpStatus'
+import databaseServices from '~/common/services/database.service'
+import { AddToCartReqBody, CreateOrderReqBody } from '~/modules/users/users.interface'
+import { ErrorWithStatus } from '~/common/models/Errors'
+import { USERS_MESSAGES } from '~/common/constants/messages'
+import HTTP_STATUS from '~/common/constants/httpStatus'
 import Order from '~/models/schemas/Order.schemas'
-import { OrderStatus } from '~/constants/enums'
+import { OrderStatus } from '~/common/constants/enums'
 
 // Gợi ý khung code
 class UsersService {

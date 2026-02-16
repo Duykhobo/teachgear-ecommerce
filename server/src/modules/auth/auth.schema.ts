@@ -1,6 +1,6 @@
 // src/models/schemas/auth.schemas.ts
 import { z } from 'zod'
-import { USERS_MESSAGES } from '~/constants/messages'
+import { USERS_MESSAGES } from '~/common/constants/messages'
 
 // Định nghĩa các trường dùng chung để không phải viết lại nhiều lần
 const passwordSchema = z

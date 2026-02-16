@@ -1,4 +1,4 @@
-import { TokenType } from '~/constants/enums'
+import { TokenType } from '~/common/constants/enums'
 import { ParsedQs } from 'qs'
 import { JwtPayload } from 'jsonwebtoken'
 

@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb'
-import { USER_ROLE, UserVerifyStatus } from '~/constants/enums'
+import { USER_ROLE, UserVerifyStatus } from '~/common/constants/enums'
 
 interface Address {
   street: string

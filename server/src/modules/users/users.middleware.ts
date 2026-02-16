@@ -1,6 +1,6 @@
-import { USERS_MESSAGES } from '~/constants/messages'
+import { USERS_MESSAGES } from '~/common/constants/messages'
 
-import { validate } from '~/utils/validation'
+import { validate } from '~/common/utils/validation'
 import { z } from 'zod'
 
 export const createOrderValidator = validate(

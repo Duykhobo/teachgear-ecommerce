@@ -1,9 +1,9 @@
 import express from 'express'
-import databaseServices from './services/database.services'
-import { defaultErrorHandler } from './middlewares/error.middlewares'
+import databaseServices from './common/services/database.service'
+import { defaultErrorHandler } from './common/middlewares/error.middleware'
 import dotenv from 'dotenv'
-import authRoutes from './routes/auth.routes'
-import userRoutes from './routes/user.routes'
+import authRoutes from './modules/auth/auth.route'
+import userRoutes from './modules/users/users.route'
 
 dotenv.config()
 

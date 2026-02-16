@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express'
 import { ZodError, ZodTypeAny } from 'zod' // Sử dụng ZodTypeAny
-import { EntityError } from '~/models/Errors'
+import { EntityError } from '~/common/models/Errors'
 
 // Thay AnyZodObject bằng ZodTypeAny để chấp nhận mọi loại Zod Schema
 export const validate = (schema: ZodTypeAny) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       // 1. Chạy parse dữ liệu
       await schema.parseAsync({

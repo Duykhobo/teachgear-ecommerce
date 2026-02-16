@@ -1,13 +1,12 @@
 import { ParamsDictionary } from 'express-serve-static-core'
 import { Request, Response } from 'express'
-import databaseServices from '~/services/database.services'
-import { ErrorWithStatus } from '~/models/Errors'
-import { USERS_MESSAGES } from '~/constants/messages'
-import HTTP_STATUS from '~/constants/httpStatus'
-import authService from '~/services/auth.services'
-import { LoginInput, LogoutInput, RegisterInput } from '~/models/schemas/auth.schemas'
-import { TokenPayload } from '~/models/requests/auth.requests'
-import { th } from 'zod/v4/locales'
+import databaseServices from '~/common/services/database.service'
+import { ErrorWithStatus } from '~/common/models/Errors'
+import { USERS_MESSAGES } from '~/common/constants/messages'
+import HTTP_STATUS from '~/common/constants/httpStatus'
+import authService from '~/modules/auth/auth.service'
+import { LoginInput, LogoutInput, RegisterInput } from '~/modules/auth/auth.schema'
+import { TokenPayload } from '~/modules/auth/auth.interface'
 
 //1. register controller
 export const registerController = async (req: Request<ParamsDictionary, any, RegisterInput>, res: Response) => {

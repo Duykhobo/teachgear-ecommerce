@@ -1,7 +1,7 @@
 // src/models/Errors.ts
 
-import HTTP_STATUS from '~/constants/httpStatus'
-import { USERS_MESSAGES } from '~/constants/messages'
+import HTTP_STATUS from '~/common/constants/httpStatus'
+import { USERS_MESSAGES } from '~/common/constants/messages'
 
 type ErrorsType = Record<
   string,

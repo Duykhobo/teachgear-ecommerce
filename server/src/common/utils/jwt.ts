@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
-import { TokenPayload } from '~/models/requests/auth.requests'
+import { TokenPayload } from '~/modules/auth/auth.interface'
 
 dotenv.config()
 //Payload: nội dung cần lưu

@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb'
-import { OrderStatus } from '~/constants/enums'
+import { OrderStatus } from '~/common/constants/enums'
 
 interface OrderItemType {
   product_id: ObjectId
