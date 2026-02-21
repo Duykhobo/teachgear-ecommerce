@@ -6,9 +6,15 @@ import { ErrorWithStatus } from '~/common/models/Errors'
 import { validate } from '~/common/utils/validation'
 import { TokenPayload } from '~/modules/auth/auth.schema'
 
-import { AddToCartSchema, ChangePasswordSchema, UpdateMeSchema } from '~/modules/users/users.schema'
+import {
+  AddToCartSchema,
+  ChangePasswordSchema,
+  UpdateMeSchema,
+  UpdateCartReqBodySchema
+} from '~/modules/users/users.schema'
 
 export const addToCartValidator = validate(AddToCartSchema)
+export const updateCartValidator = validate(UpdateCartReqBodySchema)
 export const updateMeValidator = validate(UpdateMeSchema)
 export const changePasswordValidator = validate(ChangePasswordSchema)
 

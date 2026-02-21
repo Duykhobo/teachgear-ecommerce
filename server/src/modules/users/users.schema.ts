@@ -9,6 +9,10 @@ export const AddToCartBodySchema = z.object({
   quantity: z.number().int().positive()
 })
 
+export const UpdateCartReqBodySchema = z.object({
+  quantity: z.number().int().positive()
+})
+
 export const NameSchema = z
   .string()
   .trim()
@@ -84,6 +88,7 @@ export const ChangePasswordSchema = z.object({ body: ChangePasswordBodySchema })
 
 // --- Types ---
 export type AddToCartReqBody = z.infer<typeof AddToCartBodySchema>
+export type UpdateCartReqBody = z.infer<typeof UpdateCartReqBodySchema>
 export type UpdateMeReqBody = z.infer<typeof UpdateMeBodySchema>
 export type ChangePasswordReqBody = z.infer<typeof ChangePasswordBodySchema>
 

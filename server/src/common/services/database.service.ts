@@ -23,6 +23,9 @@ class DatabaseService {
     try {
       await this.db.command({ ping: 1 }) //đổi cách xài
       console.log('Pinged your deployment. You successfully connected to MongoDB!')
+
+      // Create indexes
+      await this.categories.createIndex({ slug: 1 }, { unique: true })
     } catch (error) {
       console.log(error)
       throw error

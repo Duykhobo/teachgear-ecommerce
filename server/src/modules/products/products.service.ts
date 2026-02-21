@@ -3,7 +3,8 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import databaseServices from '~/common/services/database.service'
-import { PaginationReqQuery } from '~/modules/products/products.schema'
+import { PaginationReqQuery, CreateProductReqBody } from '~/modules/products/products.schema'
+import Product from '~/models/schemas/Product.shemas'
 
 class ProductsService {
   async getProduct(product_id: string) {
@@ -98,7 +99,7 @@ class ProductsService {
     }
   }
 
-  async createProduct(payload: any) {
+  async createProduct(payload: CreateProductReqBody) {
     const categoryExists = await databaseServices.categories.findOne({ _id: new ObjectId(payload.category_id) })
 
     if (!categoryExists) {
@@ -108,18 +109,10 @@ class ProductsService {
       })
     }
 
-    const product_id = new ObjectId()
-    const newProduct = {
-      _id: product_id,
+    const newProduct = new Product({
       ...payload,
-      category: new ObjectId(payload.category_id), // Cast string to ObjectId
-      is_active: true,
-      sold_quantity: 0,
-      created_at: new Date(),
-      updated_at: new Date()
-    }
-    // Remove the original string ID payload property before insert
-    delete newProduct.category_id
+      category: new ObjectId(payload.category_id)
+    })
 
     await databaseServices.products.insertOne(newProduct)
     return newProduct

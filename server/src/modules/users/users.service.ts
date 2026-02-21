@@ -109,7 +109,17 @@ class UsersService {
         },
         //Bước 4: vì lookup trả về mảng nên ta dùng $unwind để tách ra
         {
-          $unwind: '$product_detail'
+          $unwind: {
+            path: '$product_detail',
+            preserveNullAndEmptyArrays: true // Keep items even if product was deleted
+          }
+        },
+        //Bước Mới: Filter ghost products
+        {
+          $match: {
+            product_detail: { $exists: true }, // Must exist
+            'product_detail.is_active': { $ne: false } // Must be active
+          }
         },
         //Bước 5: Gọt dũa kết quả trả về
         {
@@ -142,6 +152,54 @@ class UsersService {
       ])
       .toArray()
     return result[0] || { cart: [], cart_total: 0 }
+  }
+
+  async updateCartItem(user_id: string, product_id: string, quantity: number) {
+    const product = await databaseServices.products.findOne({
+      _id: new ObjectId(product_id),
+      is_active: { $ne: false }
+    })
+
+    if (!product) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.PRODUCT_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+
+    if (quantity > (product.stock_quantity || 0)) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.OVER_STOCK_QUANTITY,
+        status: HTTP_STATUS.BAD_REQUEST
+      })
+    }
+
+    await databaseServices.users.updateOne(
+      {
+        _id: new ObjectId(user_id),
+        'cart.product_id': new ObjectId(product_id)
+      },
+      {
+        $set: {
+          'cart.$.quantity': quantity
+        }
+      }
+    )
+
+    // Return the updated cart implicitly via a getCart call
+    return this.getCart(user_id)
+  }
+
+  async removeFromCart(user_id: string, product_id: string) {
+    await databaseServices.users.updateOne(
+      { _id: new ObjectId(user_id) },
+      {
+        $pull: {
+          cart: { product_id: new ObjectId(product_id) }
+        }
+      }
+    )
+    return this.getCart(user_id)
   }
 }
 

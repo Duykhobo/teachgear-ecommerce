@@ -30,3 +30,36 @@ export const getCartController = async (
   const result = await usersService.getCart(user_id)
   return res.status(HTTP_STATUS.OK).json({ data: result })
 }
+
+// 3. Update cart item Controller
+export const updateCartItemController = async (
+  req: Request<ParamsDictionary, any, any>,
+  res: Response,
+  _next: NextFunction
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { product_id } = req.params as { product_id: string }
+  const { quantity } = req.body
+
+  const result = await usersService.updateCartItem(user_id, product_id, quantity)
+  return res.status(HTTP_STATUS.OK).json({
+    message: 'Cart item updated successfully',
+    data: result
+  })
+}
+
+// 4. Remove from cart Controller
+export const removeFromCartController = async (
+  req: Request<ParamsDictionary, any, any>,
+  res: Response,
+  _next: NextFunction
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { product_id } = req.params as { product_id: string }
+
+  const result = await usersService.removeFromCart(user_id, product_id)
+  return res.status(HTTP_STATUS.OK).json({
+    message: 'Item removed from cart successfully',
+    data: result
+  })
+}

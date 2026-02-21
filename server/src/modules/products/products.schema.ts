@@ -10,6 +10,8 @@ export const CreateProductSchema = z.object({
   images: z.array(z.object({ url: z.string().url(USERS_MESSAGES.IMAGE_URL_MUST_BE_A_STRING) })).optional()
 })
 
+export type CreateProductReqBody = z.infer<typeof CreateProductSchema>
+
 export const PaginationQuerySchema = z.object({
   page: z
     .string()
