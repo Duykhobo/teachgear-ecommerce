@@ -114,5 +114,9 @@ export const USERS_MESSAGES = {
   RECEIVER_NAME_IS_REQUIRED: 'Receiver name is required',
   RECEIVER_NAME_MUST_BE_STRING: 'Receiver name must be string',
   PAYMENT_METHOD_IS_REQUIRED: 'Payment method is required',
-  PAYMENT_METHOD_MUST_BE_STRING: 'Payment method must be string'
+  PAYMENT_METHOD_MUST_BE_STRING: 'Payment method must be string',
+
+  /* --- ADMIN --- */
+  FORBIDDEN: 'Forbidden: Admin access required',
+  UNAUTHORIZED: 'Unauthorized: Token is missing or invalid'
 } as const

@@ -56,7 +56,7 @@ export default class Order {
     this.payment = order.payment
     this.delivery = {
       ...order.delivery,
-      shipping_fee: order.delivery.shipping_fee || 0
+      shipping_fee: order.delivery.shipping_fee ?? 0
     }
   }
 }
