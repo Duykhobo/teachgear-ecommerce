@@ -5,6 +5,7 @@ import RefreshToken from '~/modules/auth/auth.schema'
 import Product from '~/models/schemas/Product.shemas'
 import { envConfig } from '~/common/configs/configs'
 import Order from '~/models/schemas/Order.schemas'
+import Category from '~/models/schemas/Category.schemas'
 
 dotenv.config()
 
@@ -42,6 +43,10 @@ class DatabaseService {
 
   get orders(): Collection<Order> {
     return this.db.collection(envConfig.DB_ORDERS_COLLECTION as string)
+  }
+
+  get categories(): Collection<Category> {
+    return this.db.collection(envConfig.DB_CATEGORIES_COLLECTION as string)
   }
 }
 

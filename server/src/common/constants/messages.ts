@@ -118,5 +118,22 @@ export const USERS_MESSAGES = {
 
   /* --- ADMIN --- */
   FORBIDDEN: 'Forbidden: Admin access required',
-  UNAUTHORIZED: 'Unauthorized: Token is missing or invalid'
+  UNAUTHORIZED: 'Unauthorized: Token is missing or invalid',
+
+  /* --- PRODUCT --- */
+  GET_ALL_PRODUCTS_SUCCESS: 'Get all products success',
+  PRODUCT_NAME_IS_REQUIRED: 'Product name is required',
+  PRODUCT_NAME_MUST_BE_A_STRING: 'Product name must be a string',
+  PRODUCT_NAME_LENGTH_MUST_BE_FROM_1_TO_100: 'Product name length must be from 1 to 100',
+  PRODUCT_DESCRIPTION_IS_REQUIRED: 'Product description is required',
+  PRODUCT_DESCRIPTION_MUST_BE_A_STRING: 'Product description must be a string',
+  PRODUCT_DESCRIPTION_LENGTH_MUST_BE_FROM_1_TO_1000: 'Product description length must be from 1 to 1000',
+  PRICE_MUST_BE_A_POSITIVE_NUMBER: 'Price must be a positive number',
+  STOCK_QUANTITY_MUST_BE_A_NONNEGATIVE_INTEGER: 'Stock quantity must be a non-negative integer',
+  CATEGORY_IS_REQUIRED: 'Category is required',
+  CATEGORY_MUST_BE_A_STRING: 'Category must be a string',
+  IMAGE_URL_MUST_BE_A_VALID_URL: 'Image URL must be a valid URL',
+  INVALID_CATEGORY_ID: 'Invalid category ID',
+  GET_PRODUCT_SUCCESS: 'Get product success',
+  CATEGORY_NOT_FOUND: 'Category not found'
 } as const
