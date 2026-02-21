@@ -5,6 +5,9 @@ import dotenv from 'dotenv'
 import authRoutes from './modules/auth/auth.route'
 import userRoutes from './modules/users/users.route'
 import orderRoutes from './modules/orders/orders.route'
+import productsRoutes from './modules/products/products.route'
+
+import categoryRoutes from './modules/category/category.route'
 
 dotenv.config()
 
@@ -21,6 +24,8 @@ databaseServices.connect()
 app.use('/auth', authRoutes)
 app.use('/users', userRoutes)
 app.use('/orders', orderRoutes)
+app.use('/products', productsRoutes)
+app.use('/categories', categoryRoutes)
 
 app.use(defaultErrorHandler)
 app.listen(PORT, () => {
