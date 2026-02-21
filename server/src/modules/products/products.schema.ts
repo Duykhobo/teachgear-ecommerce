@@ -1,29 +1,14 @@
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { z } from 'zod'
 
-export const CreateProductSchema = z
-  .object({
-    name: z.string().min(1, USERS_MESSAGES.PRODUCT_NAME_IS_REQUIRED),
-    price: z.number().positive(USERS_MESSAGES.PRICE_MUST_BE_A_POSITIVE_NUMBER),
-    stock_quantity: z.number().int().nonnegative(USERS_MESSAGES.STOCK_QUANTITY_MUST_BE_A_NONNEGATIVE_INTEGER),
-    category_id: z.string().regex(/^[0-9a-fA-F]{24}$/, USERS_MESSAGES.INVALID_CATEGORY_ID),
-    description: z.string().optional(),
-    images: z.array(z.object({ url: z.string().url(USERS_MESSAGES.IMAGE_URL_MUST_BE_A_STRING) })).optional()
-  })
-  .superRefine(async (data, ctx) => {
-    // Use a dynamic import to avoid circular dependency issues when the app starts
-    const { default: databaseServices } = await import('~/common/services/database.service')
-    const { ObjectId } = await import('mongodb')
-
-    const category = await databaseServices.categories.findOne({ _id: new ObjectId(data.category_id) })
-    if (!category) {
-      ctx.addIssue({
-        code: 'custom',
-        message: USERS_MESSAGES.CATEGORY_NOT_FOUND,
-        path: ['category_id']
-      })
-    }
-  })
+export const CreateProductSchema = z.object({
+  name: z.string().min(1, USERS_MESSAGES.PRODUCT_NAME_IS_REQUIRED),
+  price: z.number().positive(USERS_MESSAGES.PRICE_MUST_BE_A_POSITIVE_NUMBER),
+  stock_quantity: z.number().int().nonnegative(USERS_MESSAGES.STOCK_QUANTITY_MUST_BE_A_NONNEGATIVE_INTEGER),
+  category_id: z.string().regex(/^[0-9a-fA-F]{24}$/, USERS_MESSAGES.INVALID_CATEGORY_ID),
+  description: z.string().optional(),
+  images: z.array(z.object({ url: z.string().url(USERS_MESSAGES.IMAGE_URL_MUST_BE_A_STRING) })).optional()
+})
 
 export const PaginationQuerySchema = z.object({
   page: z

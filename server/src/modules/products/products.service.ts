@@ -99,6 +99,15 @@ class ProductsService {
   }
 
   async createProduct(payload: any) {
+    const categoryExists = await databaseServices.categories.findOne({ _id: new ObjectId(payload.category_id) })
+
+    if (!categoryExists) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.CATEGORY_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND // HTTP_STATUS.BAD_REQUEST is also good here
+      })
+    }
+
     const product_id = new ObjectId()
     const newProduct = {
       _id: product_id,
