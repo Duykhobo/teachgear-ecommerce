@@ -19,6 +19,7 @@ interface ProductType {
   category: CategoryType['_id']
   sold_quantity?: number
   images?: ProductImageType[]
+  is_active?: boolean
 }
 
 export default class Product {
@@ -30,6 +31,7 @@ export default class Product {
   category: CategoryType['_id']
   sold_quantity?: number
   images?: ProductImageType[]
+  is_active: boolean
 
   constructor(product: ProductType) {
     this._id = product._id || new ObjectId()
@@ -40,5 +42,7 @@ export default class Product {
     this.category = product.category
     this.sold_quantity = product.sold_quantity || 0
     this.images = product.images || []
+    this.is_active = product.is_active !== undefined ? product.is_active : true
+    this.is_active = product.is_active || true
   }
 }

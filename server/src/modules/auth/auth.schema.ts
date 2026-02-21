@@ -104,6 +104,7 @@ export type EmailVerifyReqQuery = z.infer<typeof EmailVerifyQuerySchema>
 export interface TokenPayload extends JwtPayload {
   user_id: string
   token_type: TokenType
+  role: number
 }
 interface RefreshTokenType {
   _id?: ObjectId

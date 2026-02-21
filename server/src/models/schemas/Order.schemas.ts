@@ -20,6 +20,7 @@ interface OrderDeliveryType {
   address: string
   phone_number: string
   receiver_name: string
+  shipping_fee?: number
 }
 interface OrderType {
   _id?: ObjectId
@@ -53,6 +54,9 @@ export default class Order {
     this.created_at = order.created_at || new Date()
     this.updated_at = order.updated_at || new Date()
     this.payment = order.payment
-    this.delivery = order.delivery
+    this.delivery = {
+      ...order.delivery,
+      shipping_fee: order.delivery.shipping_fee || 0
+    }
   }
 }

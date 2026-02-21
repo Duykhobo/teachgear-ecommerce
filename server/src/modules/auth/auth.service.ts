@@ -1,6 +1,6 @@
 import { signToken } from '~/common/utils/jwt'
 import databaseServices from '~/common/services/database.service'
-import { TokenType, UserVerifyStatus } from '~/common/constants/enums'
+import { TokenType, USER_ROLE, UserVerifyStatus } from '~/common/constants/enums'
 import ms from 'ms'
 import { ForgotPasswordReqBody, LoginReqBody, RegisterReqBody } from '~/modules/auth/auth.schema'
 import { ObjectId } from 'mongodb'
@@ -14,27 +14,27 @@ import { envConfig } from '~/common/configs/configs'
 import emailService from '~/common/services/email.service'
 
 class AuthService {
-  private signAccessToken(user_id: string) {
+  private signAccessToken(user_id: string, role: number) {
     return signToken({
       privateKey: envConfig.JWT_SECRET_ACCESS_TOKEN as string,
-      payload: { user_id, token_type: TokenType.AccessToken },
+      payload: { user_id, token_type: TokenType.AccessToken, role },
       options: {
         expiresIn: envConfig.ACCESS_TOKEN_EXPIRE_IN as ms.StringValue
       }
     })
   }
-  private signRefreshToken(user_id: string) {
+  private signRefreshToken(user_id: string, role: number) {
     return signToken({
       privateKey: envConfig.JWT_SECRET_REFRESH_TOKEN as string,
-      payload: { user_id, token_type: TokenType.RefreshToken },
+      payload: { user_id, token_type: TokenType.RefreshToken, role },
       options: {
         expiresIn: envConfig.REFRESH_TOKEN_EXPIRE_IN as ms.StringValue
       }
     })
   }
 
-  private signAccessAndRefreshToken(user_id: string) {
-    return Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)])
+  private signAccessAndRefreshToken(user_id: string, role: number) {
+    return Promise.all([this.signAccessToken(user_id, role), this.signRefreshToken(user_id, role)])
   }
 
   private signEmailVerifyToken(user_id: string) {
@@ -77,7 +77,8 @@ class AuthService {
         email: payload.email
       })
     )
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id.toString())
+    const role = USER_ROLE.User
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id.toString(), role)
     await databaseServices.refreshTokens.insertOne(
       new RefreshToken({
         user_id: new ObjectId(user_id.toString()),
@@ -125,7 +126,8 @@ class AuthService {
       })
     }
     const user_id = user._id.toString()
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    const role = user.role
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id, role)
     await databaseServices.refreshTokens.insertOne(
       new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
     )
@@ -134,7 +136,7 @@ class AuthService {
       refresh_token
     }
   }
-  async refreshToken({ user_id, refresh_token }: { user_id: string; refresh_token: string }) {
+  async refreshToken({ user_id, refresh_token, role }: { user_id: string; refresh_token: string; role: number }) {
     // 2. Check DB
     const refreshToken = await databaseServices.refreshTokens.findOne({ token: refresh_token })
     if (!refreshToken) {
@@ -145,7 +147,7 @@ class AuthService {
     }
 
     // 3. Xoay vòng token
-    const [new_access_token, new_refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    const [new_access_token, new_refresh_token] = await this.signAccessAndRefreshToken(user_id, role)
     await databaseServices.refreshTokens.deleteOne({ token: refresh_token })
     await databaseServices.refreshTokens.insertOne(
       new RefreshToken({ user_id: new ObjectId(user_id), token: new_refresh_token })
@@ -250,16 +252,27 @@ class AuthService {
     }
   }
   async verifyEmail(user_id: string) {
-    await databaseServices.users.updateOne({ _id: new ObjectId(user_id) }, [
-      {
-        $set: {
-          verify: UserVerifyStatus.Verified,
-          email_verify_token: '',
-          updated_at: '$$NOW'
+    const user = await databaseServices.users.findOneAndUpdate(
+      { _id: new ObjectId(user_id) },
+      [
+        {
+          $set: {
+            verify: UserVerifyStatus.Verified,
+            email_verify_token: '',
+            updated_at: '$$NOW'
+          }
         }
-      }
-    ])
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+      ],
+      { returnDocument: 'after' }
+    )
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.USER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+    const role = user.role
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id, role)
     await databaseServices.refreshTokens.insertOne(
       new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
     )
