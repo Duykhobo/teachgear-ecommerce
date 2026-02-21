@@ -50,5 +50,19 @@ export const CreateOrderSchema = z.object({
   body: CreateOrderBodySchema
 })
 
+import { OrderStatus } from '~/common/constants/enums'
+
 // Dùng cái này ném cho Service!
 export type CreateOrderReqBody = z.infer<typeof CreateOrderBodySchema>
+
+export const UpdateOrderStatusBodySchema = z.object({
+  status: z.nativeEnum(OrderStatus, {
+    message: USERS_MESSAGES.INVALID_ORDER_STATUS
+  })
+})
+
+export const UpdateOrderStatusSchema = z.object({
+  body: UpdateOrderStatusBodySchema
+})
+
+export type UpdateOrderStatusReqBody = z.infer<typeof UpdateOrderStatusBodySchema>

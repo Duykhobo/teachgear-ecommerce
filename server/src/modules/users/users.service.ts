@@ -114,31 +114,41 @@ class UsersService {
             preserveNullAndEmptyArrays: true // Keep items even if product was deleted
           }
         },
-        //Bước Mới: Filter ghost products
-        {
-          $match: {
-            product_detail: { $exists: true }, // Must exist
-            'product_detail.is_active': { $ne: false } // Must be active
-          }
-        },
-        //Bước 5: Gọt dũa kết quả trả về
+        // Bước 5: Gọt dũa kết quả trả về, handle TH Ghost Product bằng is_available
         {
           $project: {
             _id: 0, // ko trả về _id của user
             product_id: '$cart.product_id',
             quantity: '$cart.quantity',
-            price: '$product_detail.price',
-            name: '$product_detail.name',
-            image: { $arrayElemAt: ['$product_detail.images.url', 0] },
-            item_total: { $multiply: ['$cart.quantity', '$product_detail.price'] } // Tính tiền luôn!
+            price: { $ifNull: ['$product_detail.price', 0] },
+            name: { $ifNull: ['$product_detail.name', 'Sản phẩm đã ngừng kinh doanh'] },
+            image: { $arrayElemAt: [{ $ifNull: ['$product_detail.images.url', []] }, 0] },
+            item_total: { $multiply: ['$cart.quantity', { $ifNull: ['$product_detail.price', 0] }] },
+            is_available: {
+              $cond: {
+                if: {
+                  $and: [
+                    { $ne: [{ $type: '$product_detail' }, 'missing'] },
+                    { $ne: ['$product_detail', null] },
+                    { $eq: ['$product_detail.is_active', true] }
+                  ]
+                },
+                then: true,
+                else: false
+              }
+            }
           }
         },
-        //bước 6: tính tổng tiền của giỏ hàng
+        //bước 6: tính tổng tiền của giỏ hàng (Chỉ tính các item is_available)
         {
           $group: {
             _id: null,
             cart: { $push: '$$ROOT' },
-            cart_total: { $sum: '$item_total' }
+            cart_total: {
+              $sum: {
+                $cond: [{ $eq: ['$is_available', true] }, '$item_total', 0]
+              }
+            }
           }
         },
         //bước 7: Xoá _id: null
