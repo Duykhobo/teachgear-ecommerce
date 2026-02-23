@@ -18,7 +18,7 @@ class EmailService {
 
   async sendVerifyEmail(to: string, token: string) {
     const subject = 'Welcome to TechGear! Verify your email'
-    const verificationLink = `${envConfig.CLIENT_URL}/auth/verify-email?email_verify_token=${token}`
+    const verificationLink = `${envConfig.CLIENT_URL}/verify-email?token=${token}`
     const html = this.getTemplate(
       'Verify Your Email Address',
       `Welcome to TechGear! We're excited to have you on board.<br/>Please verify your email address to get access to all our features.`,

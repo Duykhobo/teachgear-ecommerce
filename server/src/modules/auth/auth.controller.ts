@@ -12,7 +12,8 @@ import {
   RefreshTokenReqBody,
   RegisterReqBody,
   ResetPasswordReqBody,
-  TokenPayload
+  TokenPayload,
+  EmailVerifyReqBody
 } from '~/modules/auth/auth.schema'
 import { UserVerifyStatus } from '~/common/constants/enums'
 
@@ -63,9 +64,9 @@ export const logoutController = async (req: Request<ParamsDictionary, any, Logou
   })
 }
 
-export const emailVerifyController = async (req: Request<ParamsDictionary, any, any, any>, res: Response) => {
+export const emailVerifyController = async (req: Request<ParamsDictionary, any, EmailVerifyReqBody>, res: Response) => {
   const { user_id } = req.decoded_email_verify_token as TokenPayload
-  const { email_verify_token } = req.query
+  const { email_verify_token } = req.body
   await authService.checkEmailVerifyToken({ user_id, email_verify_token })
   const result = await authService.verifyEmail(user_id)
   return res.json({

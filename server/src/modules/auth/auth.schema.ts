@@ -75,8 +75,8 @@ export const ResetPasswordBodySchema = z
     }
   })
 
-// --- Query Schemas ---
-export const EmailVerifyQuerySchema = z.object({
+// --- Body Schemas ---
+export const EmailVerifyBodySchema = z.object({
   email_verify_token: z.string().trim().min(1, { message: USERS_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED })
 })
 
@@ -88,7 +88,7 @@ export const RefreshTokenSchema = z.object({ body: RefreshTokenBodySchema })
 export const ForgotPasswordSchema = z.object({ body: ForgotPasswordBodySchema })
 export const VerifyForgotPasswordTokenSchema = z.object({ body: VerifyForgotPasswordTokenBodySchema })
 export const ResetPasswordSchema = z.object({ body: ResetPasswordBodySchema })
-export const EmailVerifySchema = z.object({ query: EmailVerifyQuerySchema })
+export const EmailVerifySchema = z.object({ body: EmailVerifyBodySchema })
 
 // --- Types(For Service) ---
 export type RegisterReqBody = z.infer<typeof RegisterBodySchema>
@@ -98,7 +98,7 @@ export type RefreshTokenReqBody = z.infer<typeof RefreshTokenBodySchema>
 export type ForgotPasswordReqBody = z.infer<typeof ForgotPasswordBodySchema>
 export type VerifyForgotPasswordTokenReqBody = z.infer<typeof VerifyForgotPasswordTokenBodySchema>
 export type ResetPasswordReqBody = z.infer<typeof ResetPasswordBodySchema>
-export type EmailVerifyReqQuery = z.infer<typeof EmailVerifyQuerySchema>
+export type EmailVerifyReqBody = z.infer<typeof EmailVerifyBodySchema>
 // --- Models ---
 
 export interface TokenPayload extends JwtPayload {

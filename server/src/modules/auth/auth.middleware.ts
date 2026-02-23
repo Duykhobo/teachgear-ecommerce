@@ -79,7 +79,7 @@ export const refreshTokenValidator = async (req: Request, _res: Response, next: 
 
 export const emailVerifyTokenValidator = async (req: Request, _res: Response, next: NextFunction) => {
   try {
-    const { email_verify_token } = req.query
+    const { email_verify_token } = req.body
 
     if (!email_verify_token) {
       throw new ErrorWithStatus({

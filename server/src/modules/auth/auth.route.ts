@@ -36,7 +36,7 @@ authRoutes.post('/refresh-token', refreshTokenValidator, wrapAsync(refreshTokenC
 
 authRoutes.post('/logout', accessTokenValidator, refreshTokenValidator, wrapAsync(logoutController))
 
-authRoutes.get(
+authRoutes.post(
   '/verify-email',
   emailVerifyTokenValidator,
   validate(EmailVerifySchema),
