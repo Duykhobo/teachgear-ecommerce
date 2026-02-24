@@ -7,7 +7,7 @@ import userRoutes from './modules/users/users.route'
 import orderRoutes from './modules/orders/orders.route'
 import productsRoutes from './modules/products/products.route'
 
-import categoryRoutes from './modules/category/category.route'
+import categoryRoutes from './modules/categories/category.route'
 
 dotenv.config()
 

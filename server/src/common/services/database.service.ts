@@ -5,7 +5,7 @@ import RefreshToken from '~/modules/auth/auth.schema'
 import Product from '~/modules/products/products.schema'
 import { envConfig } from '~/common/configs/configs'
 import Order from '~/modules/orders/orders.schema'
-import Category from '~/modules/category/category.schema'
+import Category from '~/modules/categories/category.schema'
 
 dotenv.config()
 
