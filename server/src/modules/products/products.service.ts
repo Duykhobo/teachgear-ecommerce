@@ -3,8 +3,7 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import databaseServices from '~/common/services/database.service'
-import { PaginationReqQuery, CreateProductReqBody, UpdateProductReqBody } from '~/modules/products/products.schema'
-import Product from '~/models/schemas/Product.shemas'
+import Product, { PaginationReqQuery, CreateProductReqBody, UpdateProductReqBody } from '~/modules/products/products.schema'
 
 class ProductsService {
   async getProduct(product_id: string) {

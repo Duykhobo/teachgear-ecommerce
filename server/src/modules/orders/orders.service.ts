@@ -1,10 +1,9 @@
 import { ObjectId } from 'mongodb'
 import databaseServices from '~/common/services/database.service'
-import { CreateOrderReqBody } from '~/modules/orders/orders.schema'
+import Order, { CreateOrderReqBody } from '~/modules/orders/orders.schema'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import HTTP_STATUS from '~/common/constants/httpStatus'
-import Order from '~/models/schemas/Order.schemas'
 import { OrderStatus } from '~/common/constants/enums'
 import usersService from '~/modules/users/users.service'
 

@@ -2,10 +2,10 @@ import { Collection, Db, MongoClient } from 'mongodb'
 import dotenv from 'dotenv'
 import User from '~/modules/users/users.schema'
 import RefreshToken from '~/modules/auth/auth.schema'
-import Product from '~/models/schemas/Product.shemas'
+import Product from '~/modules/products/products.schema'
 import { envConfig } from '~/common/configs/configs'
-import Order from '~/models/schemas/Order.schemas'
-import Category from '~/models/schemas/Category.schemas'
+import Order from '~/modules/orders/orders.schema'
+import Category from '~/modules/category/category.schema'
 
 dotenv.config()
 
