@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import productsService from '~/modules/products/products.service'
+import { ProductReqParams, UpdateProductReqBody, CreateProductReqBody } from './products.schema'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 
@@ -13,7 +14,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
 }
 
 //2. get product by id
-export const getProduct = async (req: Request, res: Response) => {
+export const getProduct = async (req: Request<ProductReqParams>, res: Response) => {
   const { id } = req.params
   const result = await productsService.getProduct(id as string)
   return res.status(HTTP_STATUS.OK).json({
@@ -23,7 +24,7 @@ export const getProduct = async (req: Request, res: Response) => {
 }
 
 //3. create product
-export const createProductController = async (req: Request, res: Response) => {
+export const createProductController = async (req: Request<any, any, CreateProductReqBody>, res: Response) => {
   const result = await productsService.createProduct(req.body)
   return res.status(HTTP_STATUS.CREATED).json({
     message: 'Create product successfully',
@@ -32,11 +33,24 @@ export const createProductController = async (req: Request, res: Response) => {
 }
 
 //4. soft delete product
-export const deleteProductController = async (req: Request, res: Response) => {
+export const deleteProductController = async (req: Request<ProductReqParams>, res: Response) => {
   const { id } = req.params
   const result = await productsService.deleteProduct(id as string)
   return res.status(HTTP_STATUS.OK).json({
     message: 'Delete product successfully',
+    result
+  })
+}
+
+//5. update product
+export const updateProductController = async (
+  req: Request<ProductReqParams, any, UpdateProductReqBody>,
+  res: Response
+) => {
+  const { id } = req.params
+  const result = await productsService.updateProduct(id, req.body)
+  return res.status(HTTP_STATUS.OK).json({
+    message: 'Update product successfully',
     result
   })
 }

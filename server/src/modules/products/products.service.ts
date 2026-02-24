@@ -3,7 +3,7 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import databaseServices from '~/common/services/database.service'
-import { PaginationReqQuery, CreateProductReqBody } from '~/modules/products/products.schema'
+import { PaginationReqQuery, CreateProductReqBody, UpdateProductReqBody } from '~/modules/products/products.schema'
 import Product from '~/models/schemas/Product.shemas'
 
 class ProductsService {
@@ -43,7 +43,7 @@ class ProductsService {
   }
 
   async getAllProducts(query: PaginationReqQuery) {
-    const { page, limit, category_id } = query
+    const { page, limit, category_id, name, sort_by, order } = query
 
     const matchStage: any = {
       is_active: { $ne: false }
@@ -51,6 +51,17 @@ class ProductsService {
 
     if (category_id) {
       matchStage.category = new ObjectId(category_id)
+    }
+
+    if (name) {
+      matchStage.name = { $regex: name, $options: 'i' }
+    }
+
+    const sortStage: any = {}
+    if (sort_by) {
+      sortStage[sort_by] = order === 'asc' ? 1 : -1
+    } else {
+      sortStage.created_at = -1
     }
 
     const result = await databaseServices.products
@@ -73,7 +84,7 @@ class ProductsService {
           }
         },
         {
-          $sort: { created_at: -1 }
+          $sort: sortStage
         },
         {
           $facet: {
@@ -130,6 +141,48 @@ class ProductsService {
         status: HTTP_STATUS.NOT_FOUND
       })
     }
+    return result
+  }
+
+  async updateProduct(product_id: string, payload: UpdateProductReqBody) {
+    const objectId = new ObjectId(product_id)
+
+    // If category_id is being updated, verify it exists
+    if (payload.category_id) {
+      const categoryExists = await databaseServices.categories.findOne({ _id: new ObjectId(payload.category_id) })
+      if (!categoryExists) {
+        throw new ErrorWithStatus({
+          message: USERS_MESSAGES.CATEGORY_NOT_FOUND,
+          status: HTTP_STATUS.NOT_FOUND
+        })
+      }
+    }
+
+    // Prepare update payload
+    const updatePayload: any = { ...payload }
+    if (updatePayload.category_id) {
+      updatePayload.category = new ObjectId(updatePayload.category_id)
+      delete updatePayload.category_id
+    }
+
+    const result = await databaseServices.products.findOneAndUpdate(
+      { _id: objectId, is_active: { $ne: false } },
+      {
+        $set: {
+          ...updatePayload,
+          updated_at: new Date()
+        }
+      },
+      { returnDocument: 'after' }
+    )
+
+    if (!result) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.PRODUCT_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+
     return result
   }
 }

@@ -136,5 +136,16 @@ export const USERS_MESSAGES = {
   IMAGE_URL_MUST_BE_A_VALID_URL: 'Image URL must be a valid URL',
   INVALID_CATEGORY_ID: 'Invalid category ID',
   GET_PRODUCT_SUCCESS: 'Get product success',
-  CATEGORY_NOT_FOUND: 'Category not found'
+  CATEGORY_NOT_FOUND: 'Category not found',
+  INVALID_PRODUCT_ID: 'Invalid product ID',
+
+  /* --- CATEGORY --- */
+  CATEGORY_NAME_IS_REQUIRED: 'Category name is required',
+  SLUG_IS_REQUIRED: 'Slug is required',
+  SLUG_MUST_BE_VALID: 'Slug must not contain spaces and only lowercase alphanumeric characters and hyphens',
+  CREATE_CATEGORY_SUCCESS: 'Create category successfully',
+  GET_ALL_CATEGORIES_SUCCESS: 'Get all categories successfully',
+  UPDATE_CATEGORY_SUCCESS: 'Update category successfully',
+  DELETE_CATEGORY_SUCCESS: 'Delete category successfully',
+  CATEGORY_IS_USED_BY_PRODUCT: 'Cannot delete category that is currently used by a product'
 } as const

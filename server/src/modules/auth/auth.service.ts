@@ -229,8 +229,19 @@ class AuthService {
     }
   }
 
-  async resetPassword({ user_id, password }: { user_id: string; password: string }) {
-    const user = await databaseServices.users.findOne({ _id: new ObjectId(user_id) })
+  async resetPassword({
+    user_id,
+    password,
+    forgot_password_token
+  }: {
+    user_id: string
+    password: string
+    forgot_password_token: string
+  }) {
+    const user = await databaseServices.users.findOne({
+      _id: new ObjectId(user_id),
+      forgot_password_token: forgot_password_token
+    })
     if (!user) {
       throw new ErrorWithStatus({
         message: USERS_MESSAGES.USER_NOT_FOUND,

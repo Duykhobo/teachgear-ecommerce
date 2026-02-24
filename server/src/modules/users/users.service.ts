@@ -94,7 +94,7 @@ class UsersService {
             _id: new ObjectId(user_id)
           }
         },
-        //bước 2:
+        //bước 2: tách mảng cart thành các document riêng biệt
         {
           $unwind: '$cart'
         },
@@ -121,7 +121,7 @@ class UsersService {
             product_id: '$cart.product_id',
             quantity: '$cart.quantity',
             price: { $ifNull: ['$product_detail.price', 0] },
-            name: { $ifNull: ['$product_detail.name', 'Sản phẩm đã ngừng kinh doanh'] },
+            name: { $ifNull: ['$product_detail.name', 'Product has been discontinued'] },
             image: { $arrayElemAt: [{ $ifNull: ['$product_detail.images.url', []] }, 0] },
             item_total: { $multiply: ['$cart.quantity', { $ifNull: ['$product_detail.price', 0] }] },
             is_available: {

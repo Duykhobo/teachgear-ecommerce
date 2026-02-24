@@ -95,8 +95,8 @@ export const resetPasswordController = async (
   res: Response
 ) => {
   const { user_id } = req.decoded_forgot_password_token as TokenPayload
-  const { password } = req.body
-  const result = await authService.resetPassword({ user_id, password })
+  const { password, forgot_password_token } = req.body
+  const result = await authService.resetPassword({ user_id, password, forgot_password_token })
   return res.status(HTTP_STATUS.OK).json(result)
 }
 
