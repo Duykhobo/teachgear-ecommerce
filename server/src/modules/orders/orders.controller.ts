@@ -4,6 +4,7 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { CreateOrderReqBody } from '~/modules/orders/orders.schema'
 import { TokenPayload } from '~/modules/auth/auth.schema'
 import ordersService from './orders.service'
+import { USERS_MESSAGES } from '~/common/constants/messages'
 
 export const createOrderController = async (
   req: Request<ParamsDictionary, any, CreateOrderReqBody>,
@@ -12,7 +13,10 @@ export const createOrderController = async (
 ) => {
   const { user_id } = req.decoded_authorization as TokenPayload
   const result = await ordersService.createOrder(user_id, req.body)
-  return res.status(HTTP_STATUS.OK).json({ result })
+  return res.status(HTTP_STATUS.OK).json({
+    message: USERS_MESSAGES.CREATE_ORDER_SUCCESS,
+    result
+  })
 }
 
 export const cancelOrderController = async (
@@ -25,7 +29,7 @@ export const cancelOrderController = async (
 
   const result = await ordersService.cancelOrder(user_id, id)
   return res.status(HTTP_STATUS.OK).json({
-    message: 'Order cancelled successfully',
+    message: USERS_MESSAGES.CANCEL_ORDER_SUCCESS,
     result
   })
 }
@@ -40,7 +44,7 @@ export const updateOrderStatusController = async (
 
   const result = await ordersService.updateOrderStatus(id, status)
   return res.status(HTTP_STATUS.OK).json({
-    message: 'Order status updated successfully',
+    message: USERS_MESSAGES.UPDATE_ORDER_STATUS_SUCCESS,
     result
   })
 }

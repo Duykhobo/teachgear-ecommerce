@@ -27,7 +27,7 @@ export const getProduct = async (req: Request<ProductReqParams>, res: Response) 
 export const createProductController = async (req: Request<any, any, CreateProductReqBody>, res: Response) => {
   const result = await productsService.createProduct(req.body)
   return res.status(HTTP_STATUS.CREATED).json({
-    message: 'Create product successfully',
+    message: USERS_MESSAGES.CREATE_PRODUCT_SUCCESS,
     result
   })
 }
@@ -37,7 +37,7 @@ export const deleteProductController = async (req: Request<ProductReqParams>, re
   const { id } = req.params
   const result = await productsService.deleteProduct(id as string)
   return res.status(HTTP_STATUS.OK).json({
-    message: 'Delete product successfully',
+    message: USERS_MESSAGES.DELETE_PRODUCT_SUCCESS,
     result
   })
 }
@@ -50,7 +50,7 @@ export const updateProductController = async (
   const { id } = req.params
   const result = await productsService.updateProduct(id, req.body)
   return res.status(HTTP_STATUS.OK).json({
-    message: 'Update product successfully',
+    message: USERS_MESSAGES.UPDATE_PRODUCT_SUCCESS,
     result
   })
 }

@@ -8,8 +8,12 @@ import orderRoutes from './modules/orders/orders.route'
 import productsRoutes from './modules/products/products.route'
 
 import categoryRoutes from './modules/categories/category.route'
+import mediaRoute from './modules/medias/medias.route'
+import { initFolder } from './common/utils/file'
 
 dotenv.config()
+
+initFolder()
 
 const app = express() //tạo server
 
@@ -26,8 +30,9 @@ app.use('/users', userRoutes)
 app.use('/orders', orderRoutes)
 app.use('/products', productsRoutes)
 app.use('/categories', categoryRoutes)
+app.use('/medias', mediaRoute)
 
 app.use(defaultErrorHandler)
 app.listen(PORT, () => {
-  console.log(`Sever is running at http://localhost:${PORT}`)
+  console.log(`Server is running at http://localhost:${PORT}`)
 })

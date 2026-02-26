@@ -101,10 +101,14 @@ export const USERS_MESSAGES = {
   OUT_OF_STOCK: 'Product out of stock',
   OVER_STOCK_QUANTITY: 'Over stock quantity',
   ADD_TO_CART_SUCCESS: 'Add to cart success',
+  UPDATE_CART_ITEM_SUCCESS: 'Update cart item success',
+  REMOVE_FROM_CART_SUCCESS: 'Remove from cart success',
   GET_CART_SUCCESS: 'Get cart success',
   INVALID_QUANTITY: 'Invalid quantity',
   CART_IS_EMPTY: 'Cart is empty',
   CREATE_ORDER_SUCCESS: 'Create order success',
+  CANCEL_ORDER_SUCCESS: 'Cancel order success',
+  UPDATE_ORDER_STATUS_SUCCESS: 'Update order status success',
   ADDRESS_IS_REQUIRED: 'Address is required',
   ADDRESS_MUST_BE_STRING: 'Address must be string',
   ADDRESS_LENGTH_MUST_BE_AT_LEAST_5_CHARACTERS: 'Address length must be at least 5 characters',
@@ -138,6 +142,10 @@ export const USERS_MESSAGES = {
   GET_PRODUCT_SUCCESS: 'Get product success',
   CATEGORY_NOT_FOUND: 'Category not found',
   INVALID_PRODUCT_ID: 'Invalid product ID',
+
+  CREATE_PRODUCT_SUCCESS: 'Create product successfully',
+  UPDATE_PRODUCT_SUCCESS: 'Update product successfully',
+  DELETE_PRODUCT_SUCCESS: 'Delete product successfully',
 
   /* --- CATEGORY --- */
   CATEGORY_NAME_IS_REQUIRED: 'Category name is required',

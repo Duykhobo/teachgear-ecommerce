@@ -146,6 +146,6 @@ dist
 node_modules/
 dist/
 build/
-
+.vscode/
 
 # End of https://www.toptal.com/developers/gitignore/api/node

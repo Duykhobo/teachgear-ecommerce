@@ -69,7 +69,7 @@ export const emailVerifyController = async (req: Request<ParamsDictionary, any, 
   const { email_verify_token } = req.body
   await authService.checkEmailVerifyToken({ user_id, email_verify_token })
   const result = await authService.verifyEmail(user_id)
-  return res.json({
+  return res.status(HTTP_STATUS.OK).json({
     message: USERS_MESSAGES.EMAIL_VERIFY_SUCCESS,
     result
   })

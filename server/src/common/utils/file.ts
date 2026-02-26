@@ -1,5 +1,7 @@
 import fs from 'fs' //thư viện giúp handle các đường dẫn
 import formidable, { File } from 'formidable'
+import HTTP_STATUS from '../constants/httpStatus'
+import { ErrorWithStatus } from '../models/Errors'
 import { Request } from 'express'
 import { UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_DIR, UPLOAD_VIDEO_TEMP_DIR } from '../constants/dir'
 export const initFolder = () => {
@@ -33,7 +35,13 @@ export const handleUploadImage = async (req: Request) => {
 
       //nếu sai valid thì dùng form.emit để gữi lỗi
       if (!valid) {
-        form.emit('error' as any, new Error('File type is not valid') as any)
+        form.emit(
+          'error' as any,
+          new ErrorWithStatus({
+            message: 'File type is not valid',
+            status: HTTP_STATUS.BAD_REQUEST
+          }) as any
+        )
         //as any vì bug này formidable chưa fix, khi nào hết thì bỏ as any
       }
       //nếu đúng thì return valid
@@ -44,10 +52,22 @@ export const handleUploadImage = async (req: Request) => {
   //files là object có dạng giống hình test code cuối cùng
   return new Promise<File[]>((resolve, reject) => {
     form.parse(req, (err, fields, files) => {
-      if (err) return reject(err) //để ý dòng này
+      if (err) {
+        return reject(
+          new ErrorWithStatus({
+            message: err.message,
+            status: HTTP_STATUS.BAD_REQUEST
+          })
+        )
+      }
       //nếu files từ req gữi lên không có key image thì reject
       if (!files.image) {
-        return reject(new Error('Image is empty'))
+        return reject(
+          new ErrorWithStatus({
+            message: 'Image is empty',
+            status: HTTP_STATUS.BAD_REQUEST
+          })
+        )
       }
       resolve(files.image as File[])
     })
@@ -70,13 +90,20 @@ export const handleUploadVideo = async (req: Request) => {
     uploadDir: UPLOAD_VIDEO_DIR, //vì video nên mình không đi qua bước xử lý trung gian nên mình sẽ k bỏ video vào temp
     maxFiles: 1, //tối đa bao nhiêu
     // keepExtensions: true, //có lấy đuôi mở rộng không .png, .jpg "nếu file có dạng asdasd.app.mp4 thì lỗi, nên mình sẽ xử lý riêng
-    maxFileSize: 50 * 1024 * 1024, //tối đa bao nhiêu byte, 50MB
+    maxFileSize: 100 * 1024 * 1024, //tối đa bao nhiêu byte, 100MB
+    maxTotalFileSize: 100 * 1024 * 1024,
     //xài option filter để kiểm tra file có phải là video không
     filter: function ({ name, originalFilename, mimetype }) {
       const valid = name === 'video' && Boolean(mimetype?.includes('video/'))
       //nếu sai valid thì dùng form.emit để gữi lỗi
       if (!valid) {
-        form.emit('error' as any, new Error('File type is not valid') as any)
+        form.emit(
+          'error' as any,
+          new ErrorWithStatus({
+            message: 'File type is not valid',
+            status: HTTP_STATUS.BAD_REQUEST
+          }) as any
+        )
         //as any vì bug này formidable chưa fix, khi nào hết thì bỏ as any
       }
       return valid
@@ -85,10 +112,22 @@ export const handleUploadVideo = async (req: Request) => {
 
   return new Promise<File[]>((resolve, reject) => {
     form.parse(req, (err, fields, files) => {
-      if (err) return reject(err)
+      if (err) {
+        return reject(
+          new ErrorWithStatus({
+            message: err.message,
+            status: HTTP_STATUS.BAD_REQUEST
+          })
+        )
+      }
       //files.video k phải image nha
       if (!files.video) {
-        return reject(new Error('video is empty'))
+        return reject(
+          new ErrorWithStatus({
+            message: 'Video is empty',
+            status: HTTP_STATUS.BAD_REQUEST
+          })
+        )
       }
       //vì k xài keepExtensions nên file sau khi xử lý xong
       // của mình sẽ k có đuôi mở rộng, mình sẽ rename nó để lắp đuôi cho nó

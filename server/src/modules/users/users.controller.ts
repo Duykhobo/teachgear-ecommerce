@@ -16,7 +16,7 @@ export const addToCartController = async (
   const result = await usersService.addToCart(user_id, req.body)
   return res.status(HTTP_STATUS.OK).json({
     message: USERS_MESSAGES.ADD_TO_CART_SUCCESS,
-    data: result
+    result
   })
 }
 
@@ -28,7 +28,10 @@ export const getCartController = async (
 ) => {
   const { user_id } = req.decoded_authorization as TokenPayload
   const result = await usersService.getCart(user_id)
-  return res.status(HTTP_STATUS.OK).json({ data: result })
+  return res.status(HTTP_STATUS.OK).json({
+    message: USERS_MESSAGES.GET_CART_SUCCESS,
+    result
+  })
 }
 
 // 3. Update cart item Controller
@@ -43,8 +46,8 @@ export const updateCartItemController = async (
 
   const result = await usersService.updateCartItem(user_id, product_id, quantity)
   return res.status(HTTP_STATUS.OK).json({
-    message: 'Cart item updated successfully',
-    data: result
+    message: USERS_MESSAGES.UPDATE_CART_ITEM_SUCCESS,
+    result
   })
 }
 
@@ -59,7 +62,7 @@ export const removeFromCartController = async (
 
   const result = await usersService.removeFromCart(user_id, product_id)
   return res.status(HTTP_STATUS.OK).json({
-    message: 'Item removed from cart successfully',
-    data: result
+    message: USERS_MESSAGES.REMOVE_FROM_CART_SUCCESS,
+    result
   })
 }

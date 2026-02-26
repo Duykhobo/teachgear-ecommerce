@@ -211,6 +211,18 @@ class UsersService {
     )
     return this.getCart(user_id)
   }
+  async findUserById(user_id: string) {
+    const user = await databaseServices.users.findOne({
+      _id: new ObjectId(user_id)
+    })
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.USER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+    return user
+  }
 }
 
 const usersService = new UsersService()
