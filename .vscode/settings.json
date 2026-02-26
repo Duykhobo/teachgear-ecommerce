@@ -1,6 +1,6 @@
 {
   "eslint.experimental.useFlatConfig": true,
-  "workbench.colorTheme": "One Dark Pro Night Flat",
+  "workbench.colorTheme": "Dracula Theme",
   "editor.cursorStyle": "line",
   "editor.cursorWidth": 2
 }

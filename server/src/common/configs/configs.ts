@@ -64,7 +64,12 @@ export const configSchema = z.object({
   SMTP_PASSWORD: z.string(),
   EMAIL_FROM_ADDRESS: z.string(),
   EMAIL_FROM_NAME: z.string(),
-  AWS_SES_REGION: z.string().optional()
+  AWS_SES_REGION: z.string().optional(),
+
+  // Cloudinary
+  CLOUDINARY_CLOUD_NAME: z.string(),
+  CLOUDINARY_API_KEY: z.string(),
+  CLOUDINARY_API_SECRET: z.string()
 })
 
 // Validate process.env
