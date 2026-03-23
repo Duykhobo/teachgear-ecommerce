@@ -23,7 +23,7 @@ export const handleUploadImage = async (req: Request) => {
     maxFileSize: 1920 * 1080,
     maxTotalFileSize: 1920 * 1080 * 4,
     //xài option filter để kiểm tra file có phải là image không
-    filter: function ({ name, originalFilename, mimetype }) {
+    filter: function ({ name, mimetype }) {
       //name: name|key truyền vào của <input name = bla bla>
       //originalFilename: tên file gốc
       //mimetype: kiểu file vd: image/png
@@ -93,7 +93,7 @@ export const handleUploadVideo = async (req: Request) => {
     maxFileSize: 100 * 1024 * 1024, //tối đa bao nhiêu byte, 100MB
     maxTotalFileSize: 100 * 1024 * 1024,
     //xài option filter để kiểm tra file có phải là video không
-    filter: function ({ name, originalFilename, mimetype }) {
+    filter: function ({ name, mimetype }) {
       const valid = name === 'video' && Boolean(mimetype?.includes('video/'))
       //nếu sai valid thì dùng form.emit để gữi lỗi
       if (!valid) {
@@ -111,7 +111,7 @@ export const handleUploadVideo = async (req: Request) => {
   })
 
   return new Promise<File[]>((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
+    form.parse(req, (err, _fields, files) => {
       if (err) {
         return reject(
           new ErrorWithStatus({

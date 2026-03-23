@@ -192,6 +192,78 @@ class OrdersService {
 
     return result
   }
+
+  async getRevenue(startDate?: string, endDate?: string) {
+    const matchStage: any = {
+      status: { $in: [OrderStatus.Delivered, OrderStatus.Completed] }
+    }
+
+    if (startDate || endDate) {
+      matchStage.created_at = {}
+      if (startDate) matchStage.created_at.$gte = new Date(startDate)
+      if (endDate) matchStage.created_at.$lte = new Date(endDate)
+    }
+
+    const result = await databaseServices.orders
+      .aggregate([
+        {
+          $match: matchStage
+        },
+        {
+          $group: {
+            _id: {
+              $dateToString: {
+                format: '%Y-%m-%d',
+                date: '$created_at',
+                timezone: 'Asia/Ho_Chi_Minh' // Fix múi giờ cho chuẩn báo cáo VN
+              }
+            },
+            total_revenue: { $sum: '$total_amount' },
+            orders_count: { $sum: 1 }
+          }
+        },
+        {
+          $sort: { _id: 1 } // Xếp tăng dần theo timeline
+        }
+      ])
+      .toArray()
+
+    return result
+  }
+
+  async getTopSellingProducts(limit: number = 5) {
+    const result = await databaseServices.orders
+      .aggregate([
+        {
+          $match: {
+            status: { $in: [OrderStatus.Delivered, OrderStatus.Completed] }
+          }
+        },
+        {
+          // Bung nát mảng order_items ra
+          $unwind: '$order_items'
+        },
+        {
+          $group: {
+            _id: '$order_items.product_id',
+            total_quantity_sold: { $sum: '$order_items.quantity' },
+            // Dùng trick $first để moi data cũ kỹ từ snapshot thay vì đi $lookup join cực khổ
+            name: { $first: '$order_items.name' },
+            image: { $first: '$order_items.image' },
+            price: { $first: '$order_items.price' }
+          }
+        },
+        {
+          $sort: { total_quantity_sold: -1 } // Giảm dần
+        },
+        {
+          $limit: Number(limit)
+        }
+      ])
+      .toArray()
+
+    return result
+  }
 }
 
 const ordersService = new OrdersService()

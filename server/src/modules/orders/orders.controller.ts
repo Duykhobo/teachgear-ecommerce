@@ -48,3 +48,21 @@ export const updateOrderStatusController = async (
     result
   })
 }
+
+export const getRevenueController = async (req: Request, res: Response, _next: NextFunction) => {
+  const { startDate, endDate } = req.query
+  const result = await ordersService.getRevenue(startDate as string, endDate as string)
+  return res.status(HTTP_STATUS.OK).json({
+    message: 'Get revenue success',
+    result
+  })
+}
+
+export const getTopSellingProductsController = async (req: Request, res: Response, _next: NextFunction) => {
+  const { limit } = req.query
+  const result = await ordersService.getTopSellingProducts(limit ? Number(limit) : 5)
+  return res.status(HTTP_STATUS.OK).json({
+    message: 'Get top selling products success',
+    result
+  })
+}

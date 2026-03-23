@@ -5,7 +5,9 @@ import { createOrderValidator, updateOrderStatusValidator } from '~/modules/orde
 import {
   createOrderController,
   cancelOrderController,
-  updateOrderStatusController
+  updateOrderStatusController,
+  getRevenueController,
+  getTopSellingProductsController
 } from '~/modules/orders/orders.controller'
 import { wrapAsync } from '~/common/utils/handler'
 
@@ -14,6 +16,15 @@ const orderRoutes = Router()
 // Public User Routes
 orderRoutes.post('/', accessTokenValidator, createOrderValidator, wrapAsync(createOrderController))
 orderRoutes.patch('/:id/cancel', accessTokenValidator, wrapAsync(cancelOrderController))
+
+// Admin Analytics Routes (MUST be placed before dynamic /:id to prevent matching conflicts)
+orderRoutes.get('/admin/analytics/revenue', accessTokenValidator, adminMiddleware, wrapAsync(getRevenueController))
+orderRoutes.get(
+  '/admin/analytics/top-products',
+  accessTokenValidator,
+  adminMiddleware,
+  wrapAsync(getTopSellingProductsController)
+)
 
 // Admin Routes (Can be prefixed with /admin or handled here with middleware)
 orderRoutes.patch(

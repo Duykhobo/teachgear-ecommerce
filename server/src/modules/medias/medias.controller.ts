@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
-import mediasService from './meadias.service'
+import mediasService from './medias.service'
 import { UserVerifyStatus } from '~/common/constants/enums'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import { TokenPayload } from '../auth/auth.schema'
