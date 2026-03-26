@@ -46,6 +46,32 @@ export const accessTokenValidator = async (req: Request, _res: Response, next: N
     }
   }
 }
+
+export const optionalAccessTokenValidator = async (req: Request, _res: Response, next: NextFunction) => {
+  const { authorization } = req.headers
+  if (!authorization) {
+    return next()
+  }
+
+  try {
+    const parts = authorization.split(' ')
+    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+      return next() // Token sai định dạng thì coi như Guest
+    }
+
+    const token = parts[1]
+    const decoded_authorization = await verifyToken({
+      token,
+      privateKey: envConfig.JWT_SECRET_ACCESS_TOKEN as string
+    })
+    ;(req as Request).decoded_authorization = decoded_authorization
+    next()
+  } catch (error) {
+    // Token lỗi (hết hạn, sai key) thì coi như Guest cho các route Optional
+    next()
+  }
+}
+
 export const refreshTokenValidator = async (req: Request, _res: Response, next: NextFunction) => {
   try {
     const { refresh_token } = req.body

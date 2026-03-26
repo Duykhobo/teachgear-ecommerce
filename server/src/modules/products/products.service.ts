@@ -9,6 +9,8 @@ import Product, {
   UpdateProductReqBody,
   ProductUpdateDBPayload
 } from '~/modules/products/products.schema'
+import { redisConnection } from '~/common/configs/redis.config'
+import logger from '~/common/utils/logger'
 
 class ProductsService {
   async getProduct(product_id: string) {
@@ -185,6 +187,63 @@ class ProductsService {
     }
 
     return result
+  }
+
+  async getTopSellingProducts(limit: number = 10) {
+    const cacheKey = `top_selling_products_${limit}`
+
+    // 1. Thử lấy từ Redis
+    try {
+      const cachedData = await redisConnection.get(cacheKey)
+      if (cachedData) {
+        logger.info('Cache HIT: Top Selling Products retrieved from Redis', { cacheKey })
+        return JSON.parse(cachedData)
+      }
+    } catch (error: any) {
+      logger.warn('Redis error during cache GET, falling back to MongoDB', { error: error.message })
+    }
+
+    // 2. Cache MISS hoặc Redis sập -> Query MongoDB
+    logger.info('Cache MISS: Fetching Top Selling Products from MongoDB')
+    const products = await databaseServices.products
+      .aggregate([
+        {
+          $match: { is_active: { $ne: false } }
+        },
+        {
+          $sort: { sold_quantity: -1 }
+        },
+        {
+          $limit: limit
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'category',
+            foreignField: '_id',
+            as: 'category_detail'
+          }
+        },
+        {
+          $unwind: {
+            path: '$category_detail',
+            preserveNullAndEmptyArrays: true
+          }
+        }
+      ])
+      .toArray()
+
+    // 3. Lưu vào Redis cho lần sau (TTL 5 phút = 300s)
+    try {
+      if (products.length > 0) {
+        await redisConnection.setex(cacheKey, 300, JSON.stringify(products))
+        logger.info('Cache UPDATED: Top Selling Products stored in Redis', { cacheKey, ttl: 300 })
+      }
+    } catch (error: any) {
+      logger.warn('Redis error during cache SET', { error: error.message })
+    }
+
+    return products
   }
 }
 

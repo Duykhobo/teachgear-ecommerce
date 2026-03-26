@@ -3,23 +3,44 @@ import productsService from '~/modules/products/products.service'
 import { ProductReqParams, UpdateProductReqBody, CreateProductReqBody } from './products.schema'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
+import { USER_ROLE } from '~/common/constants/enums'
+import { TokenPayload } from '../auth/auth.schema'
+
+// Helper function to bifurcate data (Senior Move)
+const filterByRole = (product: any, role?: USER_ROLE) => {
+  if (role === USER_ROLE.Admin) return product // Admin thấy tuốt
+
+  // User/Guest chỉ thấy vài thông tin quan trọng
+  const { name, price, description, images, sold_quantity, category_detail, _id } = product
+  return { _id, name, price, description, images, sold_quantity, category_detail }
+}
 
 //1. get all products
 export const getAllProducts = async (req: Request, res: Response) => {
-  const result = await productsService.getAllProducts(req.query as any)
+  const role = (req.decoded_authorization as TokenPayload)?.role
+  const data = await productsService.getAllProducts(req.query as any)
+
+  // Map lại kết quả dựa trên role
+  const filteredProducts = data.products.map((p: any) => filterByRole(p, role))
+
   return res.status(HTTP_STATUS.OK).json({
     message: USERS_MESSAGES.GET_ALL_PRODUCTS_SUCCESS,
-    result
+    result: {
+      ...data,
+      products: filteredProducts
+    }
   })
 }
 
 //2. get product by id
 export const getProduct = async (req: Request<ProductReqParams>, res: Response) => {
   const { id } = req.params
+  const role = (req.decoded_authorization as TokenPayload)?.role
   const result = await productsService.getProduct(id as string)
+
   return res.status(HTTP_STATUS.OK).json({
     message: USERS_MESSAGES.GET_PRODUCT_SUCCESS,
-    result
+    result: filterByRole(result, role)
   })
 }
 
@@ -54,3 +75,18 @@ export const updateProductController = async (
     result
   })
 }
+
+//6. get top selling products
+export const getTopSellingProductsController = async (req: Request, res: Response) => {
+  const limit = req.query.limit ? parseInt(req.query.limit as string) : 10
+  const role = (req.decoded_authorization as TokenPayload)?.role
+  const products = await productsService.getTopSellingProducts(limit)
+
+  const result = products.map((p: any) => filterByRole(p, role))
+
+  return res.status(HTTP_STATUS.OK).json({
+    message: USERS_MESSAGES.GET_TOP_SELLING_PRODUCTS_SUCCESS,
+    result
+  })
+}
+
