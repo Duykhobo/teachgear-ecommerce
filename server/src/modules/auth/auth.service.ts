@@ -11,7 +11,7 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import { envConfig } from '~/common/configs/configs'
-import emailService from '~/common/services/email.service'
+import { enqueueEmailJob } from '~/common/queues/email.queue'
 
 class AuthService {
   private signAccessToken(user_id: string, role: number) {
@@ -85,8 +85,11 @@ class AuthService {
         token: refresh_token
       })
     )
-    // Send verify email
-    await emailService.sendVerifyEmail(payload.email, email_verify_token)
+    await enqueueEmailJob({
+      type: 'verify-email',
+      to: payload.email,
+      token: email_verify_token
+    })
 
     return {
       access_token,
@@ -128,8 +131,13 @@ class AuthService {
     const user_id = user._id.toString()
     const role = user.role
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id, role)
-    await databaseServices.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    
+    // Sử dụng updateOne với upsert: true để tránh lỗi 11000 (duplicate key) 
+    // nếu login quá nhanh trong cùng 1 giây dẫn đến trùng token iat.
+    await databaseServices.refreshTokens.updateOne(
+      { token: refresh_token },
+      { $set: new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token }) },
+      { upsert: true }
     )
     return {
       access_token,
@@ -222,8 +230,11 @@ class AuthService {
         $currentDate: { updated_at: true }
       }
     )
-    // Send forgot password email
-    await emailService.sendForgotPasswordEmail(payload.email, forgot_password_token)
+    await enqueueEmailJob({
+      type: 'forgot-password',
+      to: payload.email,
+      token: forgot_password_token
+    })
     return {
       message: USERS_MESSAGES.CHECK_EMAIL_TO_RESET_PASSWORD
     }
@@ -255,7 +266,7 @@ class AuthService {
           password: await hashPassword(password)
         },
         $unset: {
-          forgot_password_token: ""
+          forgot_password_token: ''
         },
         $currentDate: { updated_at: true }
       }
@@ -272,7 +283,7 @@ class AuthService {
           verify: UserVerifyStatus.Verified
         },
         $unset: {
-          email_verify_token: ""
+          email_verify_token: ''
         },
         $currentDate: { updated_at: true }
       },
@@ -317,7 +328,11 @@ class AuthService {
         }
       }
     ])
-    await emailService.sendVerifyEmail(user.email, email_verify_token)
+    await enqueueEmailJob({
+      type: 'verify-email',
+      to: user.email,
+      token: email_verify_token
+    })
     return {
       message: USERS_MESSAGES.RESEND_VERIFY_EMAIL_SUCCESS
     }

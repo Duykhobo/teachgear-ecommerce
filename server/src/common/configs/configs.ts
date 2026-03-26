@@ -21,7 +21,9 @@ if (!envFilename) {
   process.exit(1)
 }
 
-console.log(`✅ Đang sử dụng file: ${envFilename} (NODE_ENV=${env})`)
+if (env !== 'test') {
+  console.log(`Đang sử dụng file: ${envFilename} (NODE_ENV=${env})`)
+}
 
 config({
   path: envFilename
@@ -32,6 +34,9 @@ config({
 export const configSchema = z.object({
   PORT: z.coerce.number().default(3000),
   HOST: z.string(),
+
+  REDIS_HOST: z.string(),
+  REDIS_PORT: z.coerce.number(),
 
   MONGODB_URI: z.string(),
   DB_USERNAME: z.string(),
@@ -77,9 +82,14 @@ export const configSchema = z.object({
 const configServer = configSchema.safeParse(process.env)
 
 if (!configServer.success) {
-  console.error('❌ Các biến môi trường khai báo trong file .env không hợp lệ:')
+  console.error('Invalid environment variables:')
   console.error(configServer.error.issues)
-  throw new Error('Các biến môi trường khai báo trong file .env không hợp lệ')
+  throw new Error('Invalid environment variables')
+}
+
+// Tách riêng DB Test nếu môi trường là test
+if (env === 'test') {
+  configServer.data.DB_NAME = configServer.data.DB_NAME + '_' + (process.env.JEST_WORKER_ID || 'test')
 }
 
 // Export ra object đã validate xong

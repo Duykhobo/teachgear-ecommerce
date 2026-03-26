@@ -1,5 +1,4 @@
 import { Collection, Db, MongoClient } from 'mongodb'
-import dotenv from 'dotenv'
 import User from '~/modules/users/users.schema'
 import RefreshToken from '~/modules/auth/auth.schema'
 import Product from '~/modules/products/products.schema'
@@ -8,13 +7,11 @@ import Order from '~/modules/orders/orders.schema'
 import Category from '~/modules/categories/category.schema'
 import Cart from '~/modules/cart/cart.schema'
 
-dotenv.config()
-
 const uri = envConfig.MONGODB_URI
 
 class DatabaseService {
   public client: MongoClient
-  private db: Db //tạo thành thuộc tình db
+  public db: Db //tạo thành thuộc tình db
   constructor() {
     this.client = new MongoClient(uri)
     // nạp giá trị cho thuộc tình db thông qua constructor
@@ -23,7 +20,9 @@ class DatabaseService {
   async connect() {
     try {
       await this.db.command({ ping: 1 }) //đổi cách xài
-      console.log('Pinged your deployment. You successfully connected to MongoDB!')
+      if (process.env.NODE_ENV !== 'test') {
+        console.log('Pinged your deployment. You successfully connected to MongoDB!')
+      }
 
       // Create indexes
       await this.categories.createIndex({ slug: 1 }, { unique: true })

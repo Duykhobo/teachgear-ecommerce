@@ -66,6 +66,7 @@ class CartService {
         { upsert: true }
       )
     }
+    return this.getCart(user_id)
   }
   async getCart(user_id: string): Promise<CartAggregateResult> {
     const result = await databaseServices.carts

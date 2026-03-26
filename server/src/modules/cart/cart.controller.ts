@@ -60,9 +60,6 @@ export const removeFromCartController = async (
   const { user_id } = req.decoded_authorization as TokenPayload
   const { product_id } = req.params as { product_id: string }
 
-  const result = await cartService.removeFromCart(user_id, product_id)
-  return res.status(HTTP_STATUS.OK).json({
-    message: USERS_MESSAGES.REMOVE_FROM_CART_SUCCESS,
-    result
-  })
+  await cartService.removeFromCart(user_id, product_id)
+  return res.status(HTTP_STATUS.NO_CONTENT).send()
 }

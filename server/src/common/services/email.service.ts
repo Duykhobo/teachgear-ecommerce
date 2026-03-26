@@ -94,8 +94,13 @@ class EmailService {
         html
       })
       console.log('Message sent: %s', info.messageId)
+      if (envConfig.SMTP_HOST === 'smtp.ethereal.email') {
+        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
+      }
+      return info
     } catch (error) {
       console.error('Error sending email:', error)
+      throw error
     }
   }
 }

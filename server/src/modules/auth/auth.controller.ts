@@ -27,7 +27,7 @@ export const registerController = async (req: Request<ParamsDictionary, any, Reg
     })
   }
   const result = await authService.register(req.body)
-  return res.status(HTTP_STATUS.OK).json({
+  return res.status(HTTP_STATUS.CREATED).json({
     message: USERS_MESSAGES.REGISTER_SUCCESS,
     result
   })

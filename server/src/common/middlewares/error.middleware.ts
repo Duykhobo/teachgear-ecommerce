@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { omit } from 'lodash'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { ErrorWithStatus } from '~/common/models/Errors'
+import logger from '~/common/utils/logger'
 
 export const defaultErrorHandler = (err: any, _req: Request, res: Response, _next: NextFunction) => {
   // Handle JSON parse errors from express.json()
@@ -25,9 +26,26 @@ export const defaultErrorHandler = (err: any, _req: Request, res: Response, _nex
     //để ta có thể lấy được các key đó
     Object.defineProperty(err, key, { enumerable: true })
   })
-  return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+  // Log error ra hệ thống
+  const status = err instanceof ErrorWithStatus ? err.status : HTTP_STATUS.INTERNAL_SERVER_ERROR
+  if (status >= 500) {
+    logger.error(`[SERVER ERROR] ${err.message}`, {
+      status,
+      stack: err.stack,
+      method: _req.method,
+      url: _req.originalUrl,
+      body: _req.body
+    })
+  } else {
+    logger.warn(`[CLIENT ERROR] ${err.message}`, {
+      status,
+      method: _req.method,
+      url: _req.originalUrl
+    })
+  }
+
+  return res.status(status).json({
     message: err.message,
-    // errorInfor: err //truyền vậy là truyền lên cả stack(full lỗi và đường dẫn của file lỗi)
-    errorInfor: omit(err, ['stack']) //truyền vậy là chỉ truyền lên message
+    errorInfor: omit(err, ['stack'])
   })
 }

@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb'
-import z from 'zod'
+import { z } from 'zod'
 
 // --- Body Schemas ---
 export const AddToCartBodySchema = z.object({
@@ -9,7 +9,9 @@ export const AddToCartBodySchema = z.object({
 
 // --- Request Schemas (for middleware) ---
 export const UpdateCartReqBodySchema = z.object({
-  quantity: z.number().int().positive()
+  body: z.object({
+    quantity: z.number().int().positive()
+  })
 })
 
 export const AddToCartSchema = z.object({ body: AddToCartBodySchema })

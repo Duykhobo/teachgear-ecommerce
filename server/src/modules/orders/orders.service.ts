@@ -8,6 +8,8 @@ import { OrderStatus } from '~/common/constants/enums'
 import cartService from '../cart/cart.service'
 import { CartAggregateResult, CartItemAggregate } from '../cart/cart.schema'
 
+import { cacheData } from '~/common/utils/cache'
+
 // State Machine: định nghĩa các transition hợp lệ cho Order Status
 // Tách ra module level — không tạo lại mỗi lần gọi updateOrderStatus
 export const VALID_ORDER_TRANSITIONS: Readonly<Record<OrderStatus, OrderStatus[]>> = {
@@ -36,29 +38,25 @@ class OrdersService {
     try {
       session.startTransaction()
       for (const item of cartData.cart) {
-        const product = await databaseServices.products.findOne({ _id: item.product_id }, { session })
-        if (!product) {
-          throw new ErrorWithStatus({
-            message: `Product ${item.product_id} out of stock`,
-            status: HTTP_STATUS.NOT_FOUND
-          })
-        }
-        if (item.quantity > (product.stock_quantity || 0)) {
-          throw new ErrorWithStatus({
-            message: `Product ${item.product_id} over stock quantity`,
-            status: HTTP_STATUS.BAD_REQUEST
-          })
-        }
-        await databaseServices.products.updateOne(
-          { _id: item.product_id },
+        const result = await databaseServices.products.findOneAndUpdate(
+          {
+            _id: new ObjectId(item.product_id),
+            stock_quantity: { $gte: item.quantity }
+          },
           {
             $inc: {
               stock_quantity: -item.quantity,
               sold_quantity: item.quantity
             }
           },
-          { session }
+          { session, returnDocument: 'after' }
         )
+        if (!result) {
+          throw new ErrorWithStatus({
+            message: `Product ${item.name} is out of stock`,
+            status: HTTP_STATUS.BAD_REQUEST
+          })
+        }
       }
 
       // 3. Tạo Đơn hàng mới
@@ -140,7 +138,6 @@ class OrdersService {
       )
 
       if (!result) {
-        // Race condition happens here if status changed just now
         throw new ErrorWithStatus({
           message: 'Order status changed, cannot cancel',
           status: HTTP_STATUS.BAD_REQUEST
@@ -258,37 +255,35 @@ class OrdersService {
   }
 
   async getTopSellingProducts(limit: number = 5) {
-    const result = await databaseServices.orders
-      .aggregate([
-        {
-          $match: {
-            status: { $in: [OrderStatus.Delivered, OrderStatus.Completed] }
+    return cacheData(`top-selling:${limit}`, async () => {
+      return await databaseServices.orders
+        .aggregate([
+          {
+            $match: {
+              status: { $in: [OrderStatus.Delivered, OrderStatus.Completed] }
+            }
+          },
+          {
+            $unwind: '$order_items'
+          },
+          {
+            $group: {
+              _id: '$order_items.product_id',
+              total_quantity_sold: { $sum: '$order_items.quantity' },
+              name: { $first: '$order_items.name' },
+              image: { $first: '$order_items.image' },
+              price: { $first: '$order_items.price' }
+            }
+          },
+          {
+            $sort: { total_quantity_sold: -1 }
+          },
+          {
+            $limit: Number(limit)
           }
-        },
-        {
-          // Bung nát mảng order_items ra
-          $unwind: '$order_items'
-        },
-        {
-          $group: {
-            _id: '$order_items.product_id',
-            total_quantity_sold: { $sum: '$order_items.quantity' },
-            // Dùng trick $first để moi data cũ kỹ từ snapshot thay vì đi $lookup join cực khổ
-            name: { $first: '$order_items.name' },
-            image: { $first: '$order_items.image' },
-            price: { $first: '$order_items.price' }
-          }
-        },
-        {
-          $sort: { total_quantity_sold: -1 } // Giảm dần
-        },
-        {
-          $limit: Number(limit)
-        }
-      ])
-      .toArray()
-
-    return result
+        ])
+        .toArray()
+    })
   }
 
   async getUserOrder(user_id: string) {

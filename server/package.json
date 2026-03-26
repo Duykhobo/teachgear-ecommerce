@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon",
+    "dev": "cross-env NODE_ENV=development nodemon --signal SIGINT",
     "build": "rimraf dist && tsc && tsc-alias",
     "start": "cross-env NODE_ENV=production node dist/index.js",
-    "test": "jest",
+    "test": "cross-env NODE_ENV=test DOTENV_TIP=off DOTENVX_NO_UPDATE=1 jest --no-cache",
     "test:watch": "jest --watchAll",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -20,6 +20,7 @@
   "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.71.1",
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -29,12 +30,15 @@
     "express-rate-limit": "^8.3.1",
     "formidable": "^3.5.4",
     "helmet": "^8.1.0",
+    "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "lodash": "^4.17.23",
     "mongodb": "^7.1.0",
     "morgan": "^1.10.1",
     "ms": "^2.1.3",
     "nodemailer": "^8.0.1",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

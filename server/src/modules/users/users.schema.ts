@@ -133,8 +133,8 @@ export default class User {
     this.updated_at = user.updated_at || date
     this.email_verify_token = user.email_verify_token || undefined
     this.forgot_password_token = user.forgot_password_token || undefined
-    this.verify = user.verify || UserVerifyStatus.Unverified
-    this.role = user.role || USER_ROLE.User
+    this.verify = user.verify ?? UserVerifyStatus.Unverified
+    this.role = user.role ?? USER_ROLE.User
     this.phone_number = user.phone_number || undefined
     this.addresses = user.addresses || []
     this.avatar = user.avatar || undefined
