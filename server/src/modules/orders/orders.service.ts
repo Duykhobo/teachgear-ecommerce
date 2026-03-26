@@ -5,24 +5,24 @@ import { ErrorWithStatus } from '~/common/models/Errors'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { OrderStatus } from '~/common/constants/enums'
-import usersService from '~/modules/users/users.service'
-import { CartItemAggregate, CartAggregateResult } from '~/modules/users/users.schema'
+import cartService from '../cart/cart.service'
+import { CartAggregateResult, CartItemAggregate } from '../cart/cart.schema'
 
 // State Machine: định nghĩa các transition hợp lệ cho Order Status
 // Tách ra module level — không tạo lại mỗi lần gọi updateOrderStatus
 export const VALID_ORDER_TRANSITIONS: Readonly<Record<OrderStatus, OrderStatus[]>> = {
-  [OrderStatus.Pending]:    [OrderStatus.Processing, OrderStatus.Cancelled],
+  [OrderStatus.Pending]: [OrderStatus.Processing, OrderStatus.Cancelled],
   [OrderStatus.Processing]: [OrderStatus.Shipped],
-  [OrderStatus.Shipped]:    [OrderStatus.Delivered],
-  [OrderStatus.Delivered]:  [OrderStatus.Completed],
-  [OrderStatus.Cancelled]:  [], // terminal state
-  [OrderStatus.Completed]:  []  // terminal state
+  [OrderStatus.Shipped]: [OrderStatus.Delivered],
+  [OrderStatus.Delivered]: [OrderStatus.Completed],
+  [OrderStatus.Cancelled]: [], // terminal state
+  [OrderStatus.Completed]: [] // terminal state
 }
 
 class OrdersService {
   async createOrder(user_id: string, payload: CreateOrderReqBody) {
     //1. Lấy giỏ hàng của user
-    const cartData: CartAggregateResult = await usersService.getCart(user_id)
+    const cartData: CartAggregateResult = await cartService.getCart(user_id)
     //2. Chặn nếu giỏ hàng rỗng
     if (cartData.cart.length === 0) {
       throw new ErrorWithStatus({
@@ -92,11 +92,7 @@ class OrdersService {
       await databaseServices.orders.insertOne(orderData, { session })
 
       // 4. Xóa Giỏ hàng — clear items trong carts collection (giữ document, chỉ rỗng items)
-      await databaseServices.carts.updateOne(
-        { user_id: new ObjectId(user_id) },
-        { $set: { items: [] } },
-        { session }
-      )
+      await databaseServices.carts.updateOne({ user_id: new ObjectId(user_id) }, { $set: { items: [] } }, { session })
 
       await session.commitTransaction()
       return {

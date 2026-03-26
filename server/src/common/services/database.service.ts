@@ -41,6 +41,14 @@ class DatabaseService {
       // Carts: unique index trên user_id — mỗi user chỉ có 1 cart
       await this.carts.createIndex({ user_id: 1 }, { unique: true, background: true })
 
+      await this.users.createIndex(
+        { email_verify_token: 1 },
+        {
+          unique: true,
+          // Chỉ index những dòng mà token thực sự là kiểu chuỗi chữ (string)
+          partialFilterExpression: { email_verify_token: { $type: 'string' } }
+        }
+      )
     } catch (error) {
       console.log(error)
       throw error

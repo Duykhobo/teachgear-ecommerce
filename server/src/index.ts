@@ -9,6 +9,7 @@ import productsRoutes from './modules/products/products.route'
 
 import categoryRoutes from './modules/categories/category.route'
 import mediaRoute from './modules/medias/medias.route'
+import cartRoutes from './modules/cart/cart.route'
 import { initFolder } from './common/utils/file'
 
 dotenv.config()
@@ -24,15 +25,22 @@ app.use(express.urlencoded({ extended: true }))
 
 //tạo router
 
-databaseServices.connect()
 app.use('/auth', authRoutes)
 app.use('/users', userRoutes)
+app.use('/carts', cartRoutes)
 app.use('/orders', orderRoutes)
 app.use('/products', productsRoutes)
 app.use('/categories', categoryRoutes)
 app.use('/medias', mediaRoute)
 
 app.use(defaultErrorHandler)
-app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`)
-})
+
+if (process.env.NODE_ENV !== 'test') {
+  databaseServices.connect().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running at http://localhost:${PORT}`)
+    })
+  })
+}
+
+export default app

@@ -3,16 +3,6 @@ import { ObjectId } from 'mongodb'
 import { USER_ROLE, UserVerifyStatus } from '~/common/constants/enums'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 
-// --- Body Schemas ---
-export const AddToCartBodySchema = z.object({
-  product_id: z.string().trim().min(1),
-  quantity: z.number().int().positive()
-})
-
-export const UpdateCartReqBodySchema = z.object({
-  quantity: z.number().int().positive()
-})
-
 export const NameSchema = z
   .string()
   .trim()
@@ -82,33 +72,13 @@ export const ChangePasswordBodySchema = z
   })
 
 // --- Request Schemas (for middleware) ---
-export const AddToCartSchema = z.object({ body: AddToCartBodySchema })
+
 export const UpdateMeSchema = z.object({ body: UpdateMeBodySchema })
 export const ChangePasswordSchema = z.object({ body: ChangePasswordBodySchema })
 
 // --- Types ---
-export type AddToCartReqBody = z.infer<typeof AddToCartBodySchema>
-export type UpdateCartReqBody = z.infer<typeof UpdateCartReqBodySchema>
 export type UpdateMeReqBody = z.infer<typeof UpdateMeBodySchema>
 export type ChangePasswordReqBody = z.infer<typeof ChangePasswordBodySchema>
-
-// Enriched cart item — kết quả của getCart() aggregate pipeline (sau $lookup + $project)
-// Dùng thay cho `(item: any)` trong orders.service.ts khi map cart → order_items
-export interface CartItemAggregate {
-  product_id: ObjectId
-  quantity: number
-  price: number
-  name: string
-  image: string
-  item_total: number
-  is_available: boolean
-}
-
-// Toàn bộ giá trị trả về của getCart()
-export interface CartAggregateResult {
-  cart: CartItemAggregate[]
-  cart_total: number
-}
 
 interface Address {
   street: string
@@ -118,7 +88,6 @@ interface Address {
   country: string
   is_default: boolean
 }
-
 
 interface UserType {
   _id?: ObjectId
