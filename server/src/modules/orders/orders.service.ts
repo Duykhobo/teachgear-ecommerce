@@ -91,14 +91,10 @@ class OrdersService {
 
       await databaseServices.orders.insertOne(orderData, { session })
 
-      // 4. Xóa Giỏ hàng (Có session)
-      await databaseServices.users.updateOne(
-        { _id: new ObjectId(user_id) },
-        {
-          $set: {
-            cart: []
-          }
-        },
+      // 4. Xóa Giỏ hàng — clear items trong carts collection (giữ document, chỉ rỗng items)
+      await databaseServices.carts.updateOne(
+        { user_id: new ObjectId(user_id) },
+        { $set: { items: [] } },
         { session }
       )
 
@@ -128,7 +124,7 @@ class OrdersService {
 
       if (!order) {
         throw new ErrorWithStatus({
-          message: 'Order not found',
+          message: USERS_MESSAGES.ORDER_NOT_FOUND,
           status: HTTP_STATUS.NOT_FOUND
         })
       }

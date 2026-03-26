@@ -41,6 +41,7 @@ export const configSchema = z.object({
   DB_PRODUCTS_COLLECTION: z.string(),
   DB_ORDERS_COLLECTION: z.string(),
   DB_CATEGORIES_COLLECTION: z.string(),
+  DB_CARTS_COLLECTION: z.string(),
 
   PASSWORD_SECRET: z.string(),
 

@@ -6,6 +6,7 @@ import Product from '~/modules/products/products.schema'
 import { envConfig } from '~/common/configs/configs'
 import Order from '~/modules/orders/orders.schema'
 import Category from '~/modules/categories/category.schema'
+import Cart from '~/modules/cart/cart.schema'
 
 dotenv.config()
 
@@ -37,6 +38,9 @@ class DatabaseService {
       // Refresh tokens: unique index trên token để lookup O(log n) khi logout / refresh
       await this.refreshTokens.createIndex({ token: 1 }, { unique: true, background: true })
 
+      // Carts: unique index trên user_id — mỗi user chỉ có 1 cart
+      await this.carts.createIndex({ user_id: 1 }, { unique: true, background: true })
+
     } catch (error) {
       console.log(error)
       throw error
@@ -61,6 +65,10 @@ class DatabaseService {
 
   get categories(): Collection<Category> {
     return this.db.collection(envConfig.DB_CATEGORIES_COLLECTION as string)
+  }
+
+  get carts(): Collection<Cart> {
+    return this.db.collection('carts')
   }
 }
 

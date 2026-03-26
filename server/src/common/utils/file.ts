@@ -51,7 +51,7 @@ export const handleUploadImage = async (req: Request) => {
   //form.parse về thành promise
   //files là object có dạng giống hình test code cuối cùng
   return new Promise<File[]>((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
+    form.parse(req, (err, _fields, files) => {
       if (err) {
         return reject(
           new ErrorWithStatus({

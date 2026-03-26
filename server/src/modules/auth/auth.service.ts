@@ -252,8 +252,10 @@ class AuthService {
       { _id: user._id },
       {
         $set: {
-          password: await hashPassword(password),
-          forgot_password_token: ''
+          password: await hashPassword(password)
+        },
+        $unset: {
+          forgot_password_token: ""
         },
         $currentDate: { updated_at: true }
       }
@@ -265,15 +267,15 @@ class AuthService {
   async verifyEmail(user_id: string) {
     const user = await databaseServices.users.findOneAndUpdate(
       { _id: new ObjectId(user_id) },
-      [
-        {
-          $set: {
-            verify: UserVerifyStatus.Verified,
-            email_verify_token: '',
-            updated_at: '$$NOW'
-          }
-        }
-      ],
+      {
+        $set: {
+          verify: UserVerifyStatus.Verified
+        },
+        $unset: {
+          email_verify_token: ""
+        },
+        $currentDate: { updated_at: true }
+      },
       { returnDocument: 'after' }
     )
     if (!user) {

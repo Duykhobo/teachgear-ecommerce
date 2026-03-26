@@ -13,10 +13,7 @@ export const createOrderController = async (
 ) => {
   const { user_id } = req.decoded_authorization as TokenPayload
   const result = await ordersService.createOrder(user_id, req.body)
-  return res.status(HTTP_STATUS.OK).json({
-    message: USERS_MESSAGES.CREATE_ORDER_SUCCESS,
-    result
-  })
+  return res.status(HTTP_STATUS.OK).json(result)
 }
 
 export const cancelOrderController = async (
