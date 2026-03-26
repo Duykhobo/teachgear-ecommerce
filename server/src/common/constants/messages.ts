@@ -95,6 +95,10 @@ export const USERS_MESSAGES = {
   REFRESH_TOKEN_SUCCESS: 'Refresh token success',
   UPLOAD_IMAGE_SUCCESS: 'Upload image success',
   UPLOAD_VIDEO_SUCCESS: 'Upload video success',
+  GET_ORDERS_HISTORY_SUCCESS: 'Get orders history success',
+  GET_REVENUE_SUCCESS: 'Get revenue success',
+  GET_TOP_SELLING_PRODUCTS_SUCCESS: 'Get top selling products success',
+  UPDATE_ME_SUCCESS: 'Update me success',
 
   /* --- PRODUCT & CART --- */
   PRODUCT_NOT_FOUND: 'Product not found',
@@ -108,6 +112,7 @@ export const USERS_MESSAGES = {
   CART_IS_EMPTY: 'Cart is empty',
   CREATE_ORDER_SUCCESS: 'Create order success',
   CANCEL_ORDER_SUCCESS: 'Cancel order success',
+  ORDER_NOT_FOUND: 'Order not found',
   UPDATE_ORDER_STATUS_SUCCESS: 'Update order status success',
   ADDRESS_IS_REQUIRED: 'Address is required',
   ADDRESS_MUST_BE_STRING: 'Address must be string',

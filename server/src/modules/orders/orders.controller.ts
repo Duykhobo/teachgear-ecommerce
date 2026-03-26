@@ -53,7 +53,7 @@ export const getRevenueController = async (req: Request, res: Response, _next: N
   const { startDate, endDate } = req.query
   const result = await ordersService.getRevenue(startDate as string, endDate as string)
   return res.status(HTTP_STATUS.OK).json({
-    message: 'Get revenue success',
+    message: USERS_MESSAGES.GET_REVENUE_SUCCESS,
     result
   })
 }
@@ -62,7 +62,16 @@ export const getTopSellingProductsController = async (req: Request, res: Respons
   const { limit } = req.query
   const result = await ordersService.getTopSellingProducts(limit ? Number(limit) : 5)
   return res.status(HTTP_STATUS.OK).json({
-    message: 'Get top selling products success',
+    message: USERS_MESSAGES.GET_TOP_SELLING_PRODUCTS_SUCCESS,
+    result
+  })
+}
+
+export const getUserOrdersController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const result = await ordersService.getUserOrder(user_id)
+  return res.status(HTTP_STATUS.OK).json({
+    message: USERS_MESSAGES.GET_ORDERS_HISTORY_SUCCESS,
     result
   })
 }

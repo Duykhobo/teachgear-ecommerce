@@ -41,6 +41,12 @@ export type CreateProductReqBody = z.infer<typeof CreateProductSchema>['body']
 export type UpdateProductReqBody = z.infer<typeof UpdateProductBodySchema>['body']
 export type ProductReqParams = z.infer<typeof ProductParamsSchema>['params']
 
+// Internal DB update payload: category_id (string) → category (ObjectId), dùng thay cho `any` trong service
+export type ProductUpdateDBPayload = Omit<UpdateProductReqBody, 'category_id'> & {
+  category?: ObjectId
+  updated_at?: Date
+}
+
 export const PaginationQuerySchema = z.object({
   page: z
     .string()

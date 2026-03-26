@@ -3,7 +3,7 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import databaseServices from '~/common/services/database.service'
-import { AddToCartReqBody } from '~/modules/users/users.schema'
+import { AddToCartReqBody, UpdateMeReqBody, CartAggregateResult } from '~/modules/users/users.schema'
 
 // Gợi ý khung code
 class UsersService {
@@ -19,7 +19,10 @@ class UsersService {
 
     // 1. Tìm Product xem có tồn tại không và check stock
     // const product = await databaseService.products.findOne(...)
-    const product = await databaseServices.products.findOne({ _id: new ObjectId(product_id) })
+    const product = await databaseServices.products.findOne({
+      _id: new ObjectId(product_id),
+      is_active: { $ne: false }
+    })
     // if (!product) throw new Error('Product not found');
     if (!product) {
       throw new ErrorWithStatus({
@@ -85,7 +88,7 @@ class UsersService {
       )
     }
   }
-  async getCart(user_id: string) {
+  async getCart(user_id: string): Promise<CartAggregateResult> {
     const result = await databaseServices.users
       .aggregate([
         //bước 1: tìm user
@@ -161,7 +164,7 @@ class UsersService {
         }
       ])
       .toArray()
-    return result[0] || { cart: [], cart_total: 0 }
+    return (result[0] as CartAggregateResult) || { cart: [], cart_total: 0 }
   }
 
   async updateCartItem(user_id: string, product_id: string, quantity: number) {
@@ -222,6 +225,47 @@ class UsersService {
       })
     }
     return user
+  }
+
+  // 5. Get current user profile (strip sensitive fields)
+  async getMe(user_id: string) {
+    const user = await databaseServices.users.findOne(
+      { _id: new ObjectId(user_id) },
+      { projection: { password: 0, email_verify_token: 0, forgot_password_token: 0 } }
+    )
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.USER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+    return user
+  }
+
+  // 6. Update current user profile
+  async updateMe(user_id: string, payload: UpdateMeReqBody) {
+    const { date_of_birth, ...rest } = payload
+    const updatedUser = await databaseServices.users.findOneAndUpdate(
+      { _id: new ObjectId(user_id) },
+      {
+        $set: {
+          ...rest,
+          ...(date_of_birth ? { date_of_birth: new Date(date_of_birth) } : {}),
+          updated_at: new Date()
+        }
+      },
+      {
+        returnDocument: 'after',
+        projection: { password: 0, email_verify_token: 0, forgot_password_token: 0 }
+      }
+    )
+    if (!updatedUser) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.USER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+    return updatedUser
   }
 }
 

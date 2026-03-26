@@ -26,6 +26,17 @@ class DatabaseService {
 
       // Create indexes
       await this.categories.createIndex({ slug: 1 }, { unique: true })
+
+      // Products: text search index (thay thế regex full scan)
+      await this.products.createIndex({ name: 'text' }, { background: true })
+
+      // Orders: compound index user_id + created_at cho GET /orders/me (sort mới nhất trước)
+      await this.orders.createIndex({ user_id: 1, created_at: -1 }, { background: true })
+      await this.orders.createIndex({ status: 1 }, { background: true })
+
+      // Refresh tokens: unique index trên token để lookup O(log n) khi logout / refresh
+      await this.refreshTokens.createIndex({ token: 1 }, { unique: true, background: true })
+
     } catch (error) {
       console.log(error)
       throw error

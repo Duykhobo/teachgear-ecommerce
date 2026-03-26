@@ -1,9 +1,14 @@
-import { ObjectId } from 'mongodb'
+import { Filter, ObjectId } from 'mongodb'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import databaseServices from '~/common/services/database.service'
-import Product, { PaginationReqQuery, CreateProductReqBody, UpdateProductReqBody } from '~/modules/products/products.schema'
+import Product, {
+  PaginationReqQuery,
+  CreateProductReqBody,
+  UpdateProductReqBody,
+  ProductUpdateDBPayload
+} from '~/modules/products/products.schema'
 
 class ProductsService {
   async getProduct(product_id: string) {
@@ -44,7 +49,7 @@ class ProductsService {
   async getAllProducts(query: PaginationReqQuery) {
     const { page, limit, category_id, name, sort_by, order } = query
 
-    const matchStage: any = {
+    const matchStage: Filter<Product> = {
       is_active: { $ne: false }
     }
 
@@ -56,12 +61,9 @@ class ProductsService {
       matchStage.name = { $regex: name, $options: 'i' }
     }
 
-    const sortStage: any = {}
-    if (sort_by) {
-      sortStage[sort_by] = order === 'asc' ? 1 : -1
-    } else {
-      sortStage.created_at = -1
-    }
+    const sortStage: Record<string, 1 | -1> = sort_by
+      ? { [sort_by]: order === 'asc' ? 1 : -1 }
+      : { created_at: -1 }
 
     const result = await databaseServices.products
       .aggregate([
@@ -158,10 +160,10 @@ class ProductsService {
     }
 
     // Prepare update payload
-    const updatePayload: any = { ...payload }
-    if (updatePayload.category_id) {
-      updatePayload.category = new ObjectId(updatePayload.category_id)
-      delete updatePayload.category_id
+    const { category_id, ...rest } = payload
+    const updatePayload: ProductUpdateDBPayload = { ...rest }
+    if (category_id) {
+      updatePayload.category = new ObjectId(category_id)
     }
 
     const result = await databaseServices.products.findOneAndUpdate(

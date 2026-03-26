@@ -7,7 +7,8 @@ import {
   cancelOrderController,
   updateOrderStatusController,
   getRevenueController,
-  getTopSellingProductsController
+  getTopSellingProductsController,
+  getUserOrdersController
 } from '~/modules/orders/orders.controller'
 import { wrapAsync } from '~/common/utils/handler'
 
@@ -34,5 +35,7 @@ orderRoutes.patch(
   updateOrderStatusValidator,
   wrapAsync(updateOrderStatusController)
 )
+
+orderRoutes.get('/me', accessTokenValidator, wrapAsync(getUserOrdersController))
 
 export default orderRoutes

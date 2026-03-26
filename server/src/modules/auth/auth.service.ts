@@ -121,7 +121,7 @@ class AuthService {
     const isMatch = await comparePassword(password, user.password)
     if (!isMatch) {
       throw new ErrorWithStatus({
-        message: USERS_MESSAGES.PASSWORD_IS_INCORRECT,
+        message: USERS_MESSAGES.EMAIL_OR_PASSWORD_IS_INCORRECT,
         status: HTTP_STATUS.UNAUTHORIZED
       })
     }

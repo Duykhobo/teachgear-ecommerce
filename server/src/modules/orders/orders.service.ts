@@ -6,11 +6,23 @@ import { USERS_MESSAGES } from '~/common/constants/messages'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { OrderStatus } from '~/common/constants/enums'
 import usersService from '~/modules/users/users.service'
+import { CartItemAggregate, CartAggregateResult } from '~/modules/users/users.schema'
+
+// State Machine: định nghĩa các transition hợp lệ cho Order Status
+// Tách ra module level — không tạo lại mỗi lần gọi updateOrderStatus
+export const VALID_ORDER_TRANSITIONS: Readonly<Record<OrderStatus, OrderStatus[]>> = {
+  [OrderStatus.Pending]:    [OrderStatus.Processing, OrderStatus.Cancelled],
+  [OrderStatus.Processing]: [OrderStatus.Shipped],
+  [OrderStatus.Shipped]:    [OrderStatus.Delivered],
+  [OrderStatus.Delivered]:  [OrderStatus.Completed],
+  [OrderStatus.Cancelled]:  [], // terminal state
+  [OrderStatus.Completed]:  []  // terminal state
+}
 
 class OrdersService {
   async createOrder(user_id: string, payload: CreateOrderReqBody) {
     //1. Lấy giỏ hàng của user
-    const cartData = await usersService.getCart(user_id)
+    const cartData: CartAggregateResult = await usersService.getCart(user_id)
     //2. Chặn nếu giỏ hàng rỗng
     if (cartData.cart.length === 0) {
       throw new ErrorWithStatus({
@@ -54,7 +66,7 @@ class OrdersService {
       const orderData = new Order({
         _id: orderId,
         user_id: new ObjectId(user_id),
-        order_items: cartData.cart.map((item: any) => ({
+        order_items: cartData.cart.map((item: CartItemAggregate) => ({
           product_id: item.product_id,
           name: item.name,
           image: item.image,
@@ -168,11 +180,29 @@ class OrdersService {
   }
 
   async updateOrderStatus(order_id: string, new_status: OrderStatus) {
-    // Note: This does not need a transaction unless you want to log history, but atomic updating is critical
+    // Bước 1: Lấy đơn hàng hiện tại để biết current status
+    const order = await databaseServices.orders.findOne({ _id: new ObjectId(order_id) })
+    if (!order) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.ORDER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+
+    // Bước 2: Validate transition theo State Machine
+    const allowedNext = VALID_ORDER_TRANSITIONS[order.status as OrderStatus]
+    if (!allowedNext.includes(new_status)) {
+      throw new ErrorWithStatus({
+        message: `Invalid status transition: ${order.status} → ${new_status}. Allowed: [${allowedNext.join(', ') || 'none'}]`,
+        status: HTTP_STATUS.BAD_REQUEST
+      })
+    }
+
+    // Bước 3: Atomic update — filter bằng current status để chống race condition
     const result = await databaseServices.orders.findOneAndUpdate(
       {
         _id: new ObjectId(order_id),
-        status: { $in: [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Shipped] } // cannot update if cancelled or already delivered
+        status: order.status // atomic check: đảm bảo không ai đổi giữa bước 1 và bước 3
       },
       {
         $set: {
@@ -185,8 +215,8 @@ class OrdersService {
 
     if (!result) {
       throw new ErrorWithStatus({
-        message: 'Order not found or status cannot be changed',
-        status: HTTP_STATUS.BAD_REQUEST
+        message: 'Order status was changed by another request. Please retry.',
+        status: HTTP_STATUS.CONFLICT
       })
     }
 
@@ -194,7 +224,11 @@ class OrdersService {
   }
 
   async getRevenue(startDate?: string, endDate?: string) {
-    const matchStage: any = {
+    interface RevenueMatchStage {
+      status: { $in: OrderStatus[] }
+      created_at?: { $gte?: Date; $lte?: Date }
+    }
+    const matchStage: RevenueMatchStage = {
       status: { $in: [OrderStatus.Delivered, OrderStatus.Completed] }
     }
 
@@ -263,6 +297,15 @@ class OrdersService {
       .toArray()
 
     return result
+  }
+
+  async getUserOrder(user_id: string) {
+    return await databaseServices.orders
+      .find({
+        user_id: new ObjectId(user_id)
+      })
+      .sort({ created_at: -1 })
+      .toArray()
   }
 }
 

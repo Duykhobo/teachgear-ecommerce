@@ -92,6 +92,24 @@ export type UpdateCartReqBody = z.infer<typeof UpdateCartReqBodySchema>
 export type UpdateMeReqBody = z.infer<typeof UpdateMeBodySchema>
 export type ChangePasswordReqBody = z.infer<typeof ChangePasswordBodySchema>
 
+// Enriched cart item — kết quả của getCart() aggregate pipeline (sau $lookup + $project)
+// Dùng thay cho `(item: any)` trong orders.service.ts khi map cart → order_items
+export interface CartItemAggregate {
+  product_id: ObjectId
+  quantity: number
+  price: number
+  name: string
+  image: string
+  item_total: number
+  is_available: boolean
+}
+
+// Toàn bộ giá trị trả về của getCart()
+export interface CartAggregateResult {
+  cart: CartItemAggregate[]
+  cart_total: number
+}
+
 interface Address {
   street: string
   ward: string
