@@ -293,9 +293,3 @@ Pending → Processing → Shipped → Delivered → Completed
    ↓
 Cancelled  (chỉ từ trạng thái Pending)
 ```
-
----
-
-## 📄 License
-
-ISC
