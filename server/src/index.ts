@@ -26,6 +26,13 @@ initFolder()
 
 const app = express() //tạo server
 
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    message: 'Chào mừng bạn đến với Hệ thống Backend của TechGear!',
+    status: 'Server đang hoạt động rất tốt!'
+  })
+})
+
 const PORT = process.env.PORT || 3000 //server chạy trên cổng port 3000
 
 app.use(requestIdMiddleware) // Gán Request ID sớm nhất có thể
@@ -96,6 +103,7 @@ app.get('/health', async (_req, res) => {
 })
 
 app.use(defaultErrorHandler)
+
 let server: any
 if (process.env.NODE_ENV !== 'test') {
   databaseServices.connect().then(() => {

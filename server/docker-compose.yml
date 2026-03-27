@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # Tầng 1: Database & Cache
   redis:
@@ -13,8 +15,21 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - REDIS_HOST=redis # Docker tự hiểu 'redis' là cái service ở trên
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - MONGO_URL=${MONGO_URL}
+      - MONGODB_URI=${MONGODB_URI}
     depends_on:
-      - redis # Bắt Redis phải lên trước rồi App mới lên sau
+      - redis
+
+  # Tầng 3: Đường hầm ra Internet (Ngrok)
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: techgear-ngrok
+    # ĐÃ SỬA Ở ĐÂY: Viết thành một chuỗi liền và thêm http://
+    command: 'http http://app:3000'
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    depends_on:
+      - app # Bắt buộc Backend Server phải chạy trước khi mở cổng ngrok
+    ports:
+      - '4040:4040'

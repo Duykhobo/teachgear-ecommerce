@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npx kill-port 3000 && cross-env NODE_ENV=development nodemon --signal SIGINT",
     "build": "rimraf dist && tsc && tsc-alias",
-    "start": "cross-env NODE_ENV=production node dist/index.js",
+    "start": "cross-env NODE_ENV=production node dist/src/index.js",
     "test": "cross-env NODE_ENV=test DOTENV_TIP=off DOTENVX_NO_UPDATE=1 jest --no-cache",
     "test:watch": "jest --watchAll",
     "lint": "eslint .",

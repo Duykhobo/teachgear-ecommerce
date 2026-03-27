@@ -6,7 +6,7 @@
     "moduleResolution": "node",
     "lib": ["ES2020"],
     "outDir": "dist",
-    "rootDir": ".", 
+    "rootDir": "./src",
 
     /* 2. Strict Checks */
     "strict": true,
@@ -27,7 +27,7 @@
     /* 4. Advanced Options */
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "removeComments": true,
+    "removeComments": false,
     "sourceMap": true
   },
   "ts-node": {
@@ -35,5 +35,5 @@
     "transpileOnly": true
   },
   "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "tests", "**/*.test.ts", "**/*.spec.ts"]
 }

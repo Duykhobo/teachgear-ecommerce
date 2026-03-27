@@ -1,5 +1,4 @@
 import swaggerJsdoc from 'swagger-jsdoc'
-import { envConfig } from './configs'
 
 const options: swaggerJsdoc.Options = {
   swaggerDefinition: {
@@ -11,8 +10,8 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: `http://localhost:${envConfig.PORT || 3000}`,
-        description: 'Development server'
+        url: '/',
+        description: 'Current Server'
       }
     ],
     components: {
@@ -25,8 +24,13 @@ const options: swaggerJsdoc.Options = {
       }
     }
   },
-  // Đường dẫn đến các file chứa annotation (JSDoc)
-  apis: ['./src/modules/**/*.route.ts', './src/modules/**/*.schema.ts'] 
+  // Cấu hình đường dẫn cho cả lúc dev (.ts) và lúc chạy production docker (.js)
+  apis: [
+    './src/modules/**/*.route.ts',
+    './src/modules/**/*.schema.ts',
+    './dist/modules/**/*.route.js',
+    './dist/modules/**/*.schema.js'
+  ]
 }
 
 export const swaggerSpec = swaggerJsdoc(options)
