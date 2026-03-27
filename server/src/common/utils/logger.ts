@@ -26,14 +26,26 @@ winston.addColors(colors)
 // Định dạng log cho Console (dễ đọc cho DEV)
 const consoleFormat = combine(
   timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  colorize({ all: true }), // Tô màu toàn bộ dòng log
+  colorize({ all: true }),
   printf(({ level, message, timestamp, status, requestId, userId, ...meta }) => {
-    const reqId = requestId ? `[${requestId}]` : ''
+    // 1. Rút gọn Request ID (lấy 8 ký tự đầu)
+    const reqId = requestId ? `[${requestId.toString().substring(0, 8)}]` : ''
+    
+    // 2. Định dạng User ID
     const uId = userId ? `[User:${userId}]` : ''
-    const statusPart = status ? `[${status}]` : ''
+
+    // 3. Tô màu Status Code dựa trên dải số (2xx, 4xx, 5xx)
+    let statusPart = ''
+    if (status) {
+      const s = Number(status)
+      if (s >= 500) statusPart = `\x1b[31m[${s}]\x1b[0m` // Red for 5xx
+      else if (s >= 400) statusPart = `\x1b[33m[${s}]\x1b[0m` // Yellow for 4xx
+      else statusPart = `\x1b[32m[${s}]\x1b[0m` // Green for 2xx/others
+    }
+
     const metaPart = Object.keys(meta).length ? `\n   ↪ Meta: ${JSON.stringify(meta)}` : ''
 
-    // Format: [Timestamp] [Level] [Request-ID] [User-ID] [Status]: Message
+    // Format: [Timestamp] [Level] [Short-ReqID] [User-ID] [Status]: Message
     return `${timestamp} ${level} ${reqId}${uId} ${statusPart}: ${message} ${metaPart}`
   })
 )
@@ -56,7 +68,8 @@ const logger = winston.createLogger({
       filename: path.join(logDir, 'error-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
       level: 'error',
-      maxFiles: '14d', // Giữ log trong 14 ngày
+      maxFiles: '14d',
+      maxSize: '20m',
       zippedArchive: true
     }),
 
@@ -64,7 +77,8 @@ const logger = winston.createLogger({
     new winston.transports.DailyRotateFile({
       filename: path.join(logDir, 'combined-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
-      maxFiles: '14d',
+      maxFiles: '7d',
+      maxSize: '20m',
       zippedArchive: true
     })
   ]

@@ -13,6 +13,43 @@ import { CategoryParamsSchema, CreateCategorySchema, UpdateCategoryBodySchema } 
 
 const categoryRoutes = Router()
 
+/**
+ * @swagger
+ * tags:
+ *   name: Categories
+ *   description: Category management for products
+ */
+
+/**
+ * @swagger
+ * /categories:
+ *   post:
+ *     summary: Create a new category (Admin only)
+ *     tags: [Categories]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Category created successfully.
+ *       400:
+ *         description: Validation error.
+ *       403:
+ *         description: Forbidden. Admin access required.
+ */
 categoryRoutes.post(
   '/',
   accessTokenValidator,
@@ -21,8 +58,51 @@ categoryRoutes.post(
   wrapAsync(createCategoryController)
 )
 
+/**
+ * @swagger
+ * /categories:
+ *   get:
+ *     summary: Get all categories
+ *     tags: [Categories]
+ *     responses:
+ *       200:
+ *         description: Returns a list of categories.
+ */
 categoryRoutes.get('/', wrapAsync(getAllCategoriesController))
 
+/**
+ * @swagger
+ * /categories/{id}:
+ *   patch:
+ *     summary: Update a category (Admin only)
+ *     tags: [Categories]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Category updated successfully.
+ *       403:
+ *         description: Forbidden.
+ */
 categoryRoutes.patch(
   '/:id',
   accessTokenValidator,
@@ -32,6 +112,26 @@ categoryRoutes.patch(
   wrapAsync(updateCategoryController)
 )
 
+/**
+ * @swagger
+ * /categories/{id}:
+ *   delete:
+ *     summary: Delete a category (Admin only)
+ *     tags: [Categories]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Category deleted successfully.
+ *       403:
+ *         description: Forbidden.
+ */
 categoryRoutes.delete(
   '/:id',
   accessTokenValidator,

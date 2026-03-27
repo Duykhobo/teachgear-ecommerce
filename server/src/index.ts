@@ -1,4 +1,6 @@
 import express from 'express'
+import swaggerUi from 'swagger-ui-express'
+import { swaggerSpec } from './common/configs/swagger.config'
 import databaseServices from './common/services/database.service'
 import { defaultErrorHandler } from './common/middlewares/error.middleware'
 // import dotenv from 'dotenv' - Đã gỡ
@@ -61,6 +63,9 @@ app.use('/orders', orderRoutes)
 app.use('/products', productsRoutes)
 app.use('/categories', categoryRoutes)
 app.use('/medias', mediaRoute)
+
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 // Health Check Endpoint
 app.get('/health', async (_req, res) => {

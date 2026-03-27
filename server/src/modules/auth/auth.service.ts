@@ -6,7 +6,7 @@ import { ForgotPasswordReqBody, LoginReqBody, RegisterReqBody } from '~/modules/
 import { ObjectId } from 'mongodb'
 import User from '~/modules/users/users.schema'
 import { comparePassword, hashPassword } from '~/common/utils/crypto'
-import RefreshToken from '~/modules/auth/auth.schema'
+// import RefreshToken from '~/modules/auth/auth.schema'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
@@ -79,11 +79,16 @@ class AuthService {
     )
     const role = USER_ROLE.User
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id.toString(), role)
-    await databaseServices.refreshTokens.insertOne(
-      new RefreshToken({
-        user_id: new ObjectId(user_id.toString()),
-        token: refresh_token
-      })
+    await databaseServices.refreshTokens.updateOne(
+      { token: refresh_token },
+      {
+        $set: {
+          user_id: new ObjectId(user_id.toString()),
+          token: refresh_token,
+          created_at: new Date()
+        }
+      },
+      { upsert: true }
     )
     await enqueueEmailJob({
       type: 'verify-email',
@@ -136,7 +141,13 @@ class AuthService {
     // nếu login quá nhanh trong cùng 1 giây dẫn đến trùng token iat.
     await databaseServices.refreshTokens.updateOne(
       { token: refresh_token },
-      { $set: new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token }) },
+      {
+        $set: {
+          user_id: new ObjectId(user_id),
+          token: refresh_token,
+          created_at: new Date()
+        }
+      },
       { upsert: true }
     )
     return {
@@ -157,8 +168,16 @@ class AuthService {
     // 3. Xoay vòng token
     const [new_access_token, new_refresh_token] = await this.signAccessAndRefreshToken(user_id, role)
     await databaseServices.refreshTokens.deleteOne({ token: refresh_token })
-    await databaseServices.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: new_refresh_token })
+    await databaseServices.refreshTokens.updateOne(
+      { token: new_refresh_token },
+      {
+        $set: {
+          user_id: new ObjectId(user_id),
+          token: new_refresh_token,
+          created_at: new Date()
+        }
+      },
+      { upsert: true }
     )
     return {
       access_token: new_access_token,
@@ -297,8 +316,16 @@ class AuthService {
     }
     const role = user.role
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id, role)
-    await databaseServices.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    await databaseServices.refreshTokens.updateOne(
+      { token: refresh_token },
+      {
+        $set: {
+          user_id: new ObjectId(user_id),
+          token: refresh_token,
+          created_at: new Date()
+        }
+      },
+      { upsert: true }
     )
     return {
       access_token,
