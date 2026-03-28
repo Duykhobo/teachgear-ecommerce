@@ -103,6 +103,31 @@ class EmailService {
       throw error
     }
   }
+
+  async sendOrderConfirmationEmail(to: string, orderId: string, totalAmount: number, currency: string = 'usd') {
+    const subject = 'Thank you for shopping at TechGear!'
+    const orderLink = `${envConfig.CLIENT_URL}/orders/${orderId}` // Link Frontend xem đơn hàng
+
+    const isVND = currency.toLowerCase() === 'vnd'
+    const locale = isVND ? 'vi-VN' : 'en-US'
+    const _currency = currency.toUpperCase()
+
+    // Format tiền tệ động (Dynamic Formatting)
+    const formattedAmount = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: _currency
+    }).format(totalAmount)
+
+    const html = this.getTemplate(
+      'Payment Successful',
+      `Thank you for shopping at TechGear.<br/><br/>
+       Your order <b>#${orderId}</b> with a total value of <b style="color:#e74c3c;font-size:18px;">${formattedAmount}</b> has been successfully paid and is being prepared.`,
+      'View Order Details',
+      orderLink
+    )
+
+    await this.sendEmail(to, subject, html)
+  }
 }
 
 const emailService = new EmailService()

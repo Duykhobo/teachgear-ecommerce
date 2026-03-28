@@ -8,11 +8,29 @@ import {
   updateOrderStatusController,
   getRevenueController,
   getTopSellingProductsController,
-  getUserOrdersController
+  getUserOrdersController,
+  handleStripeWebhookController
 } from '~/modules/orders/orders.controller'
 import { wrapAsync } from '~/common/utils/handler'
+import express from 'express'
 
 const orderRoutes = Router()
+
+/**
+ * @swagger
+ * /orders/webhook:
+ *   post:
+ *     summary: Stripe Webhook (Hệ thống tự gọi, không dành cho User)
+ *     tags: [Orders]
+ *     responses:
+ *       200:
+ *         description: Webhook received.
+ */
+orderRoutes.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }), // Giữ nguyên dạng raw buffer
+  wrapAsync(handleStripeWebhookController)
+)
 
 /**
  * @swagger

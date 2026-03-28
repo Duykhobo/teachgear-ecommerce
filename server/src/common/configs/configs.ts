@@ -75,7 +75,13 @@ export const configSchema = z.object({
   // Cloudinary
   CLOUDINARY_CLOUD_NAME: z.string(),
   CLOUDINARY_API_KEY: z.string(),
-  CLOUDINARY_API_SECRET: z.string()
+  CLOUDINARY_API_SECRET: z.string(),
+
+  // Stripe
+  STRIPE_SECRET_KEY: z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string(),
+  STRIPE_SUCCESS_URL: z.string(),
+  STRIPE_CANCEL_URL: z.string()
 })
 
 // Validate process.env

@@ -4,9 +4,12 @@ import emailService from '../services/email.service'
 
 // 1. Định nghĩa kiểu dữ liệu cho Job
 export interface EmailJobPayload {
-  type: 'verify-email' | 'forgot-password'
+  type: 'verify-email' | 'forgot-password' | 'order-confirmation'
   to: string
-  token: string
+  token?: string
+  orderId?: string
+  totalAmount?: number
+  currency?: string
 }
 
 const QUEUE_NAME = 'email-queue'
@@ -24,13 +27,15 @@ if (process.env.NODE_ENV !== 'test') {
   emailWorker = new Worker<EmailJobPayload>(
     QUEUE_NAME,
     async (job: Job<EmailJobPayload>) => {
-      const { type, to, token } = job.data
+      const { type, to, token, orderId, totalAmount } = job.data
       console.log(`[Worker] Processing [${type}] to: ${to}`)
 
       if (type === 'verify-email') {
-        await emailService.sendVerifyEmail(to, token)
+        await emailService.sendVerifyEmail(to, token!)
       } else if (type === 'forgot-password') {
-        await emailService.sendForgotPasswordEmail(to, token)
+        await emailService.sendForgotPasswordEmail(to, token!)
+      } else if (type === 'order-confirmation') {
+        await emailService.sendOrderConfirmationEmail(to, orderId!, totalAmount!, job.data.currency)
       }
     },
     {

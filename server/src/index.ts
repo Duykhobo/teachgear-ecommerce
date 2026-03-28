@@ -12,6 +12,7 @@ import productsRoutes from './modules/products/products.route'
 import categoryRoutes from './modules/categories/category.route'
 import mediaRoute from './modules/medias/medias.route'
 import cartRoutes from './modules/cart/cart.route'
+import paymentRoutes from './modules/payments/payments.route'
 import { initFolder } from './common/utils/file'
 import { emailWorker } from '~/common/queues/email.queue'
 import { redisConnection } from './common/configs/redis.config'
@@ -36,7 +37,14 @@ app.get('/', (_req, res) => {
 const PORT = process.env.PORT || 3000 //server chạy trên cổng port 3000
 
 app.use(requestIdMiddleware) // Gán Request ID sớm nhất có thể
-app.use(express.json())
+app.use('/payments', paymentRoutes) // Mount before express.json() because Stripe webhook needs raw body
+app.use((req, res, next) => {
+  if (req.originalUrl.includes('/webhook')) {
+    next()
+  } else {
+    express.json()(req, res, next)
+  }
+})
 app.use(express.urlencoded({ extended: true }))
 
 // Morgan middleware: Ghi log request thông minh

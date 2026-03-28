@@ -9,6 +9,9 @@ import cartService from '../cart/cart.service'
 import { CartAggregateResult, CartItemAggregate } from '../cart/cart.schema'
 
 import { cacheData } from '~/common/utils/cache'
+import { stripe } from '~/common/configs/stripe.config'
+import { envConfig } from '~/common/configs/configs'
+import { enqueueEmailJob } from '~/common/queues/email.queue'
 
 // State Machine: định nghĩa các transition hợp lệ cho Order Status
 // Tách ra module level — không tạo lại mỗi lần gọi updateOrderStatus
@@ -61,6 +64,7 @@ class OrdersService {
 
       // 3. Tạo Đơn hàng mới
       const orderId = new ObjectId()
+
       const orderData = new Order({
         _id: orderId,
         user_id: new ObjectId(user_id),
@@ -93,9 +97,42 @@ class OrdersService {
       await databaseServices.carts.updateOne({ user_id: new ObjectId(user_id) }, { $set: { items: [] } }, { session })
 
       await session.commitTransaction()
+
+      let checkout_url = null
+      if (payload.payment_method === 'Stripe') {
+        const line_items = cartData.cart.map((item: CartItemAggregate) => ({
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: item.name,
+              images: item.image ? [item.image] : []
+            },
+            unit_amount: Math.round(item.price * 100) // Stripe expects cents
+          },
+          quantity: item.quantity
+        }))
+
+        const stripeSession = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          mode: 'payment',
+          success_url: envConfig.STRIPE_SUCCESS_URL,
+          cancel_url: envConfig.STRIPE_CANCEL_URL,
+          client_reference_id: user_id.toString(),
+          metadata: {
+            order_id: orderId.toString()
+          },
+          line_items
+        })
+
+        checkout_url = stripeSession.url
+      }
+
       return {
         message: USERS_MESSAGES.CREATE_ORDER_SUCCESS,
-        data: orderData
+        data: {
+          ...orderData,
+          ...(checkout_url && { checkout_url })
+        }
       }
     } catch (error) {
       await session.abortTransaction()
@@ -293,6 +330,51 @@ class OrdersService {
       })
       .sort({ created_at: -1 })
       .toArray()
+  }
+
+  async handleStripeWebhook(event: any) {
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object
+      const orderId = session.metadata.order_id
+
+      if (orderId) {
+        // 1. Lấy thông tin đơn hàng trước để lấy user_id và total_amount
+        const order = await databaseServices.orders.findOne({ _id: new ObjectId(orderId) })
+
+        if (order) {
+          // 2. Cập nhật trạng thái đơn hàng thành Paid
+          await databaseServices.orders.updateOne(
+            { _id: new ObjectId(orderId) },
+            {
+              $set: {
+                'payment.payment_status': 'Paid',
+                'payment.payment_id': session.payment_intent as string,
+                status: OrderStatus.Processing,
+                updated_at: new Date()
+              }
+            }
+          )
+
+          console.log(`[STRIPE WEBHOOK] Order ${orderId} has been successfully paid!`)
+
+          // 3. Tìm thông tin User để lấy email
+          const user = await databaseServices.users.findOne({ _id: order.user_id })
+
+          if (user && user.email) {
+            // 4. Bắn thông tin vào Queue để Worker chạy ngầm gửi Email
+            await enqueueEmailJob({
+              type: 'order-confirmation',
+              to: user.email,
+              orderId: orderId,
+              totalAmount: order.total_amount,
+              currency: session.currency || 'usd'
+            })
+            console.log(`[QUEUE] Pushed task to send order confirmation email to user ${user.email}`)
+          }
+        }
+      }
+    }
+    return { received: true }
   }
 }
 
