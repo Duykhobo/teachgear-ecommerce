@@ -45,10 +45,19 @@ const categoryRoutes = Router()
  *     responses:
  *       201:
  *         description: Category created successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       $ref: '#/components/schemas/Category'
  *       400:
- *         description: Validation error.
+ *         $ref: '#/components/responses/BadRequestError'
  *       403:
- *         description: Forbidden. Admin access required.
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 categoryRoutes.post(
   '/',
@@ -67,6 +76,17 @@ categoryRoutes.post(
  *     responses:
  *       200:
  *         description: Returns a list of categories.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Category'
  */
 categoryRoutes.get('/', wrapAsync(getAllCategoriesController))
 

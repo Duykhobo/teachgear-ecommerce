@@ -25,8 +25,17 @@ const userRoutes = Router()
  *     responses:
  *       200:
  *         description: Returns user profile.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       $ref: '#/components/schemas/User'
  *       401:
- *         description: Unauthorized.
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 userRoutes.get('/me', accessTokenValidator, wrapAsync(getMeController))
 
@@ -53,10 +62,19 @@ userRoutes.get('/me', accessTokenValidator, wrapAsync(getMeController))
  *     responses:
  *       200:
  *         description: Profile updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       $ref: '#/components/schemas/User'
  *       400:
- *         description: Validation error.
+ *         $ref: '#/components/responses/BadRequestError'
  *       401:
- *         description: Unauthorized.
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 userRoutes.patch('/me', accessTokenValidator, updateMeValidator, wrapAsync(updateMeController))
 

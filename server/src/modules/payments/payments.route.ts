@@ -8,6 +8,26 @@ import logger from '~/common/utils/logger'
 
 const paymentRoutes = express.Router()
 
+/**
+ * @swagger
+ * tags:
+ *   name: Payments
+ *   description: Payment processing and webhooks
+ */
+
+/**
+ * @swagger
+ * /payments/webhook:
+ *   post:
+ *     summary: Stripe Webhook (Hệ thống tự gọi, không dành cho User)
+ *     description: Handles Stripe payment events like checkout.session.completed, checkout.session.expired, etc.
+ *     tags: [Payments]
+ *     responses:
+ *       200:
+ *         description: Webhook received correctly.
+ *       400:
+ *         description: Invalid signature or error.
+ */
 paymentRoutes.post('/webhook', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string
   let event

@@ -71,10 +71,19 @@ orderRoutes.post(
  *     responses:
  *       201:
  *         description: Order created successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       $ref: '#/components/schemas/Order'
  *       400:
- *         description: Missing information or empty cart.
+ *         $ref: '#/components/responses/BadRequestError'
  *       401:
- *         description: Unauthorized.
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 orderRoutes.post('/', accessTokenValidator, createOrderValidator, wrapAsync(createOrderController))
 
@@ -227,6 +236,17 @@ orderRoutes.get(
  *     responses:
  *       200:
  *         description: Returns user's list of orders.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Order'
  */
 orderRoutes.get('/me', accessTokenValidator, wrapAsync(getUserOrdersController))
 
@@ -247,6 +267,17 @@ orderRoutes.get('/me', accessTokenValidator, wrapAsync(getUserOrdersController))
  *     responses:
  *       200:
  *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       $ref: '#/components/schemas/Order'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
 orderRoutes.get('/:id', accessTokenValidator, wrapAsync(getOrderController))
 

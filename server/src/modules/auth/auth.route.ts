@@ -71,8 +71,24 @@ const authRoutes = Router()
  *     responses:
  *       201:
  *         description: Registration successful. Returns access_token and refresh_token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       type: object
+ *                       properties:
+ *                         access_token:
+ *                           type: string
+ *                         refresh_token:
+ *                           type: string
+ *                         user:
+ *                           $ref: '#/components/schemas/User'
  *       400:
- *         description: Validation error or email already exists.
+ *         $ref: '#/components/responses/BadRequestError'
  *       429:
  *         description: Too many requests.
  */
@@ -103,8 +119,24 @@ authRoutes.post('/register', authLimiter, validate(RegisterSchema), wrapAsync(re
  *     responses:
  *       200:
  *         description: Login successful. Returns access_token and refresh_token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       type: object
+ *                       properties:
+ *                         access_token:
+ *                           type: string
+ *                         refresh_token:
+ *                           type: string
+ *                         user:
+ *                           $ref: '#/components/schemas/User'
  *       401:
- *         description: Invalid email or password.
+ *         $ref: '#/components/responses/UnauthorizedError'
  *       429:
  *         description: Too many requests.
  */

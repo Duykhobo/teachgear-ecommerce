@@ -41,11 +41,22 @@ const cartRoutes = Router()
  *                 type: integer
  *     responses:
  *       200:
- *         description: Item added successfully.
+ *         description: Item added successfully. Returns updated cart.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/CartItem'
  *       400:
- *         description: Validation error.
+ *         $ref: '#/components/responses/BadRequestError'
  *       401:
- *         description: Unauthorized.
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 cartRoutes.post('/', accessTokenValidator, addToCartValidator, wrapAsync(addToCartController))
 
@@ -60,8 +71,19 @@ cartRoutes.post('/', accessTokenValidator, addToCartValidator, wrapAsync(addToCa
  *     responses:
  *       200:
  *         description: Returns the user's cart items.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/CartItem'
  *       401:
- *         description: Unauthorized.
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 cartRoutes.get('/me', accessTokenValidator, wrapAsync(getCartController))
 
@@ -92,11 +114,22 @@ cartRoutes.get('/me', accessTokenValidator, wrapAsync(getCartController))
  *                 type: integer
  *     responses:
  *       200:
- *         description: Quantity updated successfully.
+ *         description: Quantity updated successfully. Returns updated cart.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/CartItem'
  *       400:
- *         description: Validation error.
+ *         $ref: '#/components/responses/BadRequestError'
  *       401:
- *         description: Unauthorized.
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 cartRoutes.patch('/:product_id', accessTokenValidator, updateCartValidator, wrapAsync(updateCartItemController))
 

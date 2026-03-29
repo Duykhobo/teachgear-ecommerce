@@ -66,6 +66,31 @@ productsRoutes.get('/top-selling', optionalAccessTokenValidator, wrapAsync(getTo
  *     responses:
  *       200:
  *         description: Returns a paginated list of products.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       type: object
+ *                       properties:
+ *                         products:
+ *                           type: array
+ *                           items:
+ *                             $ref: '#/components/schemas/Product'
+ *                         pagination:
+ *                           type: object
+ *                           properties:
+ *                             page:
+ *                               type: integer
+ *                             limit:
+ *                               type: integer
+ *                             total_pages:
+ *                               type: integer
+ *                             total_products:
+ *                               type: integer
  */
 productsRoutes.get('/', optionalAccessTokenValidator, paginationValidator, wrapAsync(getAllProducts))
 
@@ -85,8 +110,17 @@ productsRoutes.get('/', optionalAccessTokenValidator, paginationValidator, wrapA
  *     responses:
  *       200:
  *         description: Returns the product details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       $ref: '#/components/schemas/Product'
  *       404:
- *         description: Product not found.
+ *         $ref: '#/components/responses/NotFoundError'
  */
 productsRoutes.get('/:id', optionalAccessTokenValidator, wrapAsync(getProduct))
 
@@ -128,10 +162,19 @@ productsRoutes.get('/:id', optionalAccessTokenValidator, wrapAsync(getProduct))
  *     responses:
  *       201:
  *         description: Product created successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       $ref: '#/components/schemas/Product'
  *       401:
- *         description: Unauthorized.
+ *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
- *         description: Forbidden. Admin access required.
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 productsRoutes.post(
   '/',

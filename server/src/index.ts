@@ -94,6 +94,9 @@ app.use('/categories', categoryRoutes)
 app.use('/medias', mediaRoute)
 
 // Swagger UI
+app.get('/swagger.json', (_req, res) => {
+  res.json(swaggerSpec)
+})
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 // Health Check Endpoint
