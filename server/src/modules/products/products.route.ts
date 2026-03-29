@@ -130,7 +130,7 @@ productsRoutes.get('/:id', optionalAccessTokenValidator, wrapAsync(getProduct))
  * /products:
  *   post:
  *     summary: Create a new product (Admin only)
- *     tags: [Products]
+ *     tags: [Admin - Products]
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -189,7 +189,7 @@ productsRoutes.post(
  * /products/{id}:
  *   delete:
  *     summary: Delete a product (Admin only)
- *     tags: [Products]
+ *     tags: [Admin - Products]
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -213,7 +213,7 @@ productsRoutes.delete('/:id', accessTokenValidator, adminMiddleware, wrapAsync(d
  * /products/{id}:
  *   patch:
  *     summary: Update an existing product (Admin only)
- *     tags: [Products]
+ *     tags: [Admin - Products]
  *     security:
  *       - BearerAuth: []
  *     parameters:

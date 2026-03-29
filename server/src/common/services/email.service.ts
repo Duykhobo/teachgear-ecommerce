@@ -15,10 +15,9 @@ class EmailService {
       }
     })
   }
-
   async sendVerifyEmail(to: string, token: string) {
     const subject = 'Chào mừng đến với TechGear! Xác thực email của bạn'
-    const verificationLink = `${envConfig.CLIENT_URL}/verify-email?token=${token}`
+    const verificationLink = `${envConfig.CLIENT_URL}/auth/verify-email?token=${token}`
     const html = this.getTemplate(
       'Xác thực địa chỉ email',
       `Chào mừng bạn đến với TechGear! Chúng tôi rất vui khi có bạn tham gia.<br/>Vui lòng xác thực địa chỉ email để truy cập tất cả các tính năng của chúng tôi.`,

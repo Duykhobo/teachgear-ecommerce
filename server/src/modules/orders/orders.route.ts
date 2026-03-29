@@ -117,8 +117,8 @@ orderRoutes.patch('/:id/cancel', accessTokenValidator, wrapAsync(cancelOrderCont
  * @swagger
  * /orders/admin/analytics/revenue:
  *   get:
- *     summary: Get revenue analytics (Admin only)
- *     tags: [Orders]
+ *     summary: Get order analytics (Admin only)
+ *     tags: [Admin - Orders]
  *     security:
  *       - BearerAuth: []
  *     responses:
@@ -132,7 +132,7 @@ orderRoutes.get('/admin/analytics/revenue', accessTokenValidator, adminMiddlewar
  * /orders/admin/analytics/top-products:
  *   get:
  *     summary: Get top selling products analytics (Admin only)
- *     tags: [Orders]
+ *     tags: [Admin - Orders]
  *     security:
  *       - BearerAuth: []
  *     responses:
@@ -152,7 +152,7 @@ orderRoutes.get(
  * /orders/admin/orders/{id}/status:
  *   patch:
  *     summary: Update order status (Admin only)
- *     tags: [Orders]
+ *     tags: [Admin - Orders]
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -188,8 +188,8 @@ orderRoutes.patch(
  * @swagger
  * /orders/admin/orders:
  *   get:
- *     summary: List all orders (Admin only)
- *     tags: [Orders]
+ *     summary: Get all orders (Admin only)
+ *     tags: [Admin - Orders]
  *     security:
  *       - BearerAuth: []
  *     parameters:

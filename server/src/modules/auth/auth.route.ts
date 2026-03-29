@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import {
-  EmailVerifySchema,
   ForgotPasswordSchema,
   LoginSchema,
   RegisterSchema,
@@ -211,15 +210,28 @@ authRoutes.post('/logout', accessTokenValidator, refreshTokenValidator, wrapAsyn
  *     responses:
  *       200:
  *         description: Email verified successfully. Returns new tokens.
- *       404:
- *         description: User not found or token is invalid.
+ *       401:
+ *         description: Invalid or expired token.
  */
-authRoutes.post(
-  '/verify-email',
-  emailVerifyTokenValidator,
-  validate(EmailVerifySchema),
-  wrapAsync(emailVerifyController)
-)
+authRoutes.post('/verify-email', emailVerifyTokenValidator, wrapAsync(emailVerifyController))
+
+/**
+ * @swagger
+ * /auth/verify-email:
+ *   get:
+ *     summary: Verify email via click link (Browser support)
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: HTML page confirming success.
+ */
+authRoutes.get('/verify-email', emailVerifyTokenValidator, wrapAsync(emailVerifyController))
 
 /**
  * @swagger

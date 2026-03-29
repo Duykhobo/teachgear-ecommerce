@@ -69,9 +69,44 @@ export const emailVerifyController = async (
   res: Response
 ) => {
   const { user_id } = req.decoded_email_verify_token as TokenPayload
-  const { email_verify_token } = req.body
+  const email_verify_token =
+    (req.body.email_verify_token as string) || (req.query.token as string) || (req.query.email_verify_token as string)
+
   await authService.checkEmailVerifyToken({ user_id, email_verify_token })
   const result = await authService.verifyEmail(user_id)
+
+  if (req.method === 'GET') {
+    return res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Email Verified - TechGear</title>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+          <style>
+              body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+              .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; max-width: 400px; }
+              .icon { font-size: 64px; color: #10b981; margin-bottom: 20px; }
+              h1 { color: #1f2937; margin: 0 0 10px; font-size: 24px; }
+              p { color: #6b7280; line-height: 1.5; margin: 0 0 25px; }
+              .btn { background-color: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; transition: background 0.2s; }
+              .btn:hover { background-color: #2563eb; }
+          </style>
+      </head>
+      <body>
+          <div class="card">
+              <div class="icon">✅</div>
+              <h1>Email Verified!</h1>
+              <p>${USERS_MESSAGES.EMAIL_VERIFY_SUCCESS}</p>
+              <p>You can now close this window and return to the application.</p>
+              <a href="postman://open" class="btn">Return to App</a>
+          </div>
+      </body>
+      </html>
+    `)
+  }
+
   return res.status(HTTP_STATUS.OK).json({
     message: USERS_MESSAGES.EMAIL_VERIFY_SUCCESS,
     result

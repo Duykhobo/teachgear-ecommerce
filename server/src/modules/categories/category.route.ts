@@ -25,7 +25,7 @@ const categoryRoutes = Router()
  * /categories:
  *   post:
  *     summary: Create a new category (Admin only)
- *     tags: [Categories]
+ *     tags: [Admin - Categories]
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -95,7 +95,7 @@ categoryRoutes.get('/', wrapAsync(getAllCategoriesController))
  * /categories/{id}:
  *   patch:
  *     summary: Update a category (Admin only)
- *     tags: [Categories]
+ *     tags: [Admin - Categories]
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -137,7 +137,7 @@ categoryRoutes.patch(
  * /categories/{id}:
  *   delete:
  *     summary: Delete a category (Admin only)
- *     tags: [Categories]
+ *     tags: [Admin - Categories]
  *     security:
  *       - BearerAuth: []
  *     parameters:
