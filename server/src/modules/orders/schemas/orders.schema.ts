@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { USERS_MESSAGES } from '~/common/constants/messages'
+import { OrderStatus } from '~/common/constants/enums'
 
-// Định nghĩa riêng Body Schema
+// --- Body Schemas ---
 const CreateOrderBodySchema = z.object({
   address: z
     .string({
@@ -45,15 +46,10 @@ const CreateOrderBodySchema = z.object({
   })
 })
 
-// Bọc nó vào field 'body' để Middleware validation hiểu
 export const CreateOrderSchema = z.object({
   body: CreateOrderBodySchema
 })
 
-import { OrderStatus } from '~/common/constants/enums'
-import { ObjectId } from 'mongodb'
-
-// Dùng cái này ném cho Service!
 export type CreateOrderReqBody = z.infer<typeof CreateOrderBodySchema>
 
 export const UpdateOrderStatusBodySchema = z.object({
@@ -68,62 +64,27 @@ export const UpdateOrderStatusSchema = z.object({
 
 export type UpdateOrderStatusReqBody = z.infer<typeof UpdateOrderStatusBodySchema>
 
-interface OrderItemType {
-  product_id: ObjectId
-  name: string
-  image: string
-  quantity: number
-  price: number
-}
-interface OrderPaymentType {
-  payment_method: string
-  payment_status: string
-  payment_id: string
-}
+export const GetOrdersAdminQuerySchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1))
+    .pipe(z.number().int().min(1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 10))
+    .pipe(z.number().int().min(1)),
+  status: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : undefined))
+    .pipe(z.nativeEnum(OrderStatus).optional()),
+  search: z.string().optional()
+})
 
-interface OrderDeliveryType {
-  delivery_method: string
-  delivery_status: string
-  address: string
-  phone_number: string
-  receiver_name: string
-  shipping_fee?: number
-}
-interface OrderType {
-  _id?: ObjectId
-  user_id: ObjectId
-  order_items: OrderItemType[]
-  total_amount: number
-  status: OrderStatus
-  created_at?: Date
-  updated_at?: Date
-  payment: OrderPaymentType
-  delivery: OrderDeliveryType
-}
+export type GetOrdersAdminReqQuery = z.infer<typeof GetOrdersAdminQuerySchema>
 
-export default class Order {
-  _id: ObjectId
-  user_id: ObjectId
-  order_items: OrderItemType[]
-  total_amount: number
-  status: OrderStatus
-  created_at: Date
-  updated_at: Date
-  payment: OrderPaymentType
-  delivery: OrderDeliveryType
-
-  constructor(order: OrderType) {
-    this._id = order._id || new ObjectId()
-    this.user_id = order.user_id
-    this.order_items = order.order_items
-    this.total_amount = order.total_amount
-    this.status = order.status
-    this.created_at = order.created_at || new Date()
-    this.updated_at = order.updated_at || new Date()
-    this.payment = order.payment
-    this.delivery = {
-      ...order.delivery,
-      shipping_fee: order.delivery.shipping_fee ?? 0
-    }
-  }
-}
+export const GetOrdersAdminSchema = z.object({
+  query: GetOrdersAdminQuerySchema
+})

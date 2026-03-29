@@ -1,7 +1,4 @@
-import { JwtPayload } from 'jsonwebtoken'
-import { ObjectId } from 'mongodb'
 import { z } from 'zod'
-import { TokenType } from '~/common/constants/enums'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 
 // --- Common Schemas ---
@@ -89,40 +86,3 @@ export const ForgotPasswordSchema = z.object({ body: ForgotPasswordBodySchema })
 export const VerifyForgotPasswordTokenSchema = z.object({ body: VerifyForgotPasswordTokenBodySchema })
 export const ResetPasswordSchema = z.object({ body: ResetPasswordBodySchema })
 export const EmailVerifySchema = z.object({ body: EmailVerifyBodySchema })
-
-// --- Types(For Service) ---
-export type RegisterReqBody = z.infer<typeof RegisterBodySchema>
-export type LoginReqBody = z.infer<typeof LoginBodySchema>
-export type LogoutReqBody = z.infer<typeof LogoutBodySchema>
-export type RefreshTokenReqBody = z.infer<typeof RefreshTokenBodySchema>
-export type ForgotPasswordReqBody = z.infer<typeof ForgotPasswordBodySchema>
-export type VerifyForgotPasswordTokenReqBody = z.infer<typeof VerifyForgotPasswordTokenBodySchema>
-export type ResetPasswordReqBody = z.infer<typeof ResetPasswordBodySchema>
-export type EmailVerifyReqBody = z.infer<typeof EmailVerifyBodySchema>
-// --- Models ---
-
-export interface TokenPayload extends JwtPayload {
-  user_id: string
-  token_type: TokenType
-  role: number
-}
-interface RefreshTokenType {
-  _id?: ObjectId
-  token: string
-  created_at?: Date
-  user_id: ObjectId
-}
-
-export default class RefreshToken {
-  _id?: ObjectId
-  token: string
-  created_at: Date
-  user_id: ObjectId
-
-  constructor({ _id, token, created_at, user_id }: RefreshTokenType) {
-    this._id = _id
-    this.token = token
-    this.created_at = created_at || new Date()
-    this.user_id = user_id
-  }
-}

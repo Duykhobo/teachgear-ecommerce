@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
 import HTTP_STATUS from '~/common/constants/httpStatus'
-import { CreateOrderReqBody } from '~/modules/orders/orders.schema'
-import { TokenPayload } from '~/modules/auth/auth.schema'
+import { CreateOrderReqBody, GetOrdersAdminReqQuery } from './schemas/orders.schema'
+import { TokenPayload } from '~/modules/auth/types/auth.types'
 import ordersService from './orders.service'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { envConfig } from '~/common/configs/configs'
 import { stripe } from '~/common/configs/stripe.config'
+import { USER_ROLE } from '~/common/constants/enums'
 
 /**
  * @swagger
@@ -57,7 +58,7 @@ import { stripe } from '~/common/configs/stripe.config'
  *         description: Validation failed (Zod error)
  */
 export const createOrderController = async (
-  req: Request<ParamsDictionary, any, CreateOrderReqBody>,
+  req: Request<ParamsDictionary, unknown, CreateOrderReqBody>,
   res: Response,
   _next: NextFunction
 ) => {
@@ -67,7 +68,7 @@ export const createOrderController = async (
 }
 
 export const cancelOrderController = async (
-  req: Request<ParamsDictionary, any, any>,
+  req: Request<ParamsDictionary, unknown, unknown>,
   res: Response,
   _next: NextFunction
 ) => {
@@ -82,7 +83,7 @@ export const cancelOrderController = async (
 }
 
 export const updateOrderStatusController = async (
-  req: Request<ParamsDictionary, any, any>,
+  req: Request<ParamsDictionary, unknown, { status: number }>,
   res: Response,
   _next: NextFunction
 ) => {
@@ -136,6 +137,74 @@ export const getUserOrdersController = async (req: Request, res: Response) => {
   })
 }
 
+/**
+ * @swagger
+ * /orders/{id}:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Get specific order details
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+export const getOrderController = async (req: Request, res: Response) => {
+  const { user_id, role } = req.decoded_authorization as TokenPayload
+  const { id } = req.params as { id: string }
+  const isAdmin = role === USER_ROLE.Admin
+  const result = await ordersService.getOrder(user_id, id, isAdmin)
+  return res.status(HTTP_STATUS.OK).json({
+    message: USERS_MESSAGES.GET_ORDER_SUCCESS,
+    result
+  })
+}
+
+/**
+ * @swagger
+ * /orders/admin:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: List all orders for admin
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: integer
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *       - name: status
+ *         in: query
+ *         schema:
+ *           type: integer
+ *       - name: search
+ *         in: query
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+export const getAllOrdersAdminController = async (req: Request, res: Response) => {
+  const result = await ordersService.getAllOrdersAdmin(req.query as unknown as GetOrdersAdminReqQuery)
+  return res.status(HTTP_STATUS.OK).json({
+    message: USERS_MESSAGES.GET_ORDERS_HISTORY_SUCCESS,
+    result
+  })
+}
+
 export const handleStripeWebhookController = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string
   const endpointSecret = envConfig.STRIPE_WEBHOOK_SECRET as string
@@ -143,12 +212,13 @@ export const handleStripeWebhookController = async (req: Request, res: Response)
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret)
-  } catch (err: any) {
-    console.error(`[STRIPE WEBHOOK ERROR]: ${err.message}`)
-    return res.status(HTTP_STATUS.BAD_REQUEST).send(`Webhook Error: ${err.message}`)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`[STRIPE WEBHOOK ERROR]: ${message}`)
+    return res.status(HTTP_STATUS.BAD_REQUEST).send(`Webhook Error: ${message}`)
   }
 
   await ordersService.handleStripeWebhook(event)
 
-  res.status(HTTP_STATUS.OK).json({ received: true })
+  return res.status(HTTP_STATUS.OK).json({ received: true })
 }

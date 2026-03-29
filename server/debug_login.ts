@@ -8,22 +8,24 @@ async function test() {
   await databaseServices.connect()
   const email = 'test_login@example.com'
   const password = 'Password123!'
-  
+
   // Cleanup
   await databaseServices.users.deleteOne({ email })
-  
+
   // Register manually
   const user_id = new ObjectId()
-  await databaseServices.users.insertOne(new User({
-    _id: user_id,
-    email,
-    password: await hashPassword(password),
-    name: 'Test User',
-    date_of_birth: new Date()
-  }))
-  
+  await databaseServices.users.insertOne(
+    new User({
+      _id: user_id,
+      email,
+      password: await hashPassword(password),
+      name: 'Test User',
+      date_of_birth: new Date()
+    })
+  )
+
   console.log('User registered. Attempting login...')
-  
+
   try {
     const result = await authService.login({ email, password })
     console.log('Login Result:', JSON.stringify(result, null, 2))

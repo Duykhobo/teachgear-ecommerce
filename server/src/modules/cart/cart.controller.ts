@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from 'express'
-import { TokenPayload } from '../auth/auth.schema'
+import { TokenPayload } from '../auth/types/auth.types'
 import { ParamsDictionary } from 'express-serve-static-core'
 import cartService from './cart.service'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
-import { AddToCartReqBody } from './cart.schema'
+import { AddToCartReqBody } from './schemas/cart.schema'
 
 // 1. Add to cart Controller
 export const addToCartController = async (
-  req: Request<ParamsDictionary, any, AddToCartReqBody>,
+  req: Request<ParamsDictionary, unknown, AddToCartReqBody>,
   res: Response,
   _next: NextFunction
 ) => {
@@ -22,7 +22,7 @@ export const addToCartController = async (
 
 // 2. Get cart Controller
 export const getCartController = async (
-  req: Request<ParamsDictionary, any, any>,
+  req: Request<ParamsDictionary, unknown, unknown>,
   res: Response,
   _next: NextFunction
 ) => {
@@ -36,7 +36,7 @@ export const getCartController = async (
 
 // 3. Update cart item Controller
 export const updateCartItemController = async (
-  req: Request<ParamsDictionary, any, any>,
+  req: Request<ParamsDictionary, unknown, { quantity: number }>,
   res: Response,
   _next: NextFunction
 ) => {
@@ -53,7 +53,7 @@ export const updateCartItemController = async (
 
 // 4. Remove from cart Controller
 export const removeFromCartController = async (
-  req: Request<ParamsDictionary, any, any>,
+  req: Request<ParamsDictionary, unknown, unknown>,
   res: Response,
   _next: NextFunction
 ) => {

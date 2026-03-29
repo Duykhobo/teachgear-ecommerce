@@ -1,11 +1,11 @@
 import { Collection, Db, MongoClient } from 'mongodb'
-import User from '~/modules/users/users.schema'
-import RefreshToken from '~/modules/auth/auth.schema'
-import Product from '~/modules/products/products.schema'
+import User from '~/modules/users/models/user.model'
+import RefreshToken from '~/modules/auth/models/refresh-token.model'
+import Product from '~/modules/products/models/product.model'
 import { envConfig } from '~/common/configs/configs'
-import Order from '~/modules/orders/orders.schema'
+import Order from '~/modules/orders/models/orders.model'
 import Category from '~/modules/categories/category.schema'
-import Cart from '~/modules/cart/cart.schema'
+import Cart from '~/modules/cart/models/cart.model'
 
 const uri = envConfig.MONGODB_URI
 

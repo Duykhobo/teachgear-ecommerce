@@ -7,7 +7,7 @@ import logger from '~/common/utils/logger'
 import { ZodError } from 'zod'
 import { formatZodErrors } from '~/common/utils/zod'
 
-export const defaultErrorHandler = (err: any, _req: Request, res: Response, _next: NextFunction) => {
+export const defaultErrorHandler = (err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   // 1. Handle Zod Validation Errors (422)
   if (err instanceof ZodError) {
     return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({
@@ -16,46 +16,34 @@ export const defaultErrorHandler = (err: any, _req: Request, res: Response, _nex
     })
   }
 
-  // 2. Handle JSON parse errors from express.json() (400)
-  if (err instanceof SyntaxError && 'body' in err && (err as any).type === 'entity.parse.failed') {
-    return res.status(HTTP_STATUS.BAD_REQUEST).json({
-      message: 'Invalid JSON format. Please check your request body for missing quotes or syntax errors.',
-      errorInfor: omit(err, ['stack'])
-    })
-  }
-
-  // 3. Chuẩn hóa các thuộc tính của Error để có thể lấy được các key ẩn
-  Object.getOwnPropertyNames(err).forEach((key) => {
-    Object.defineProperty(err, key, { enumerable: true })
-  })
-
-  // 4. Xác định HTTP Status Code
+  // 2. Handle Custom ErrorWithStatus or generic Error
   const status = err instanceof ErrorWithStatus ? err.status : HTTP_STATUS.INTERNAL_SERVER_ERROR
+  const message = err instanceof Error ? err.message : 'Internal Server Error'
 
-  // 5. Ghi Log ra hệ thống
+  // 3. Log errors
   if (status >= 500) {
-    logger.error(`[SERVER ERROR] ${err.message}`, {
+    logger.error(`[SERVER ERROR] ${message}`, {
       status,
-      stack: err.stack,
+      stack: err instanceof Error ? err.stack : undefined,
       method: _req.method,
       url: _req.originalUrl,
       body: _req.body
     })
   } else {
-    logger.warn(`[CLIENT ERROR] ${err.message}`, {
+    logger.warn(`[CLIENT ERROR] ${message}`, {
       status,
       method: _req.method,
       url: _req.originalUrl
     })
   }
 
-  // 6. Trả Response về cho Client
+  // 4. Send Response
   if (err instanceof ErrorWithStatus) {
     return res.status(status).json(omit(err, ['status']))
   }
 
   return res.status(status).json({
-    message: err.message,
-    errorInfor: omit(err, ['stack']) // Ẩn stack trace ở môi trường thực tế
+    message,
+    errorInfor: err instanceof Error ? omit(err, ['stack']) : err
   })
 }

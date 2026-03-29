@@ -66,7 +66,7 @@ export const optionalAccessTokenValidator = async (req: Request, _res: Response,
     })
     ;(req as Request).decoded_authorization = decoded_authorization
     next()
-  } catch (error) {
+  } catch {
     // Token lỗi (hết hạn, sai key) thì coi như Guest cho các route Optional
     next()
   }

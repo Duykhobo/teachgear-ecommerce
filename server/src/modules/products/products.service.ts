@@ -3,12 +3,13 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import databaseServices from '~/common/services/database.service'
-import Product, {
+import Product from './models/product.model'
+import {
   PaginationReqQuery,
   CreateProductReqBody,
   UpdateProductReqBody,
   ProductUpdateDBPayload
-} from '~/modules/products/products.schema'
+} from './types/product.types'
 import { redisConnection } from '~/common/configs/redis.config'
 import logger from '~/common/utils/logger'
 
@@ -63,66 +64,72 @@ class ProductsService {
       matchStage.name = { $regex: name, $options: 'i' }
     }
 
-    const sortStage: Record<string, 1 | -1> = sort_by
-      ? { [sort_by]: order === 'asc' ? 1 : -1 }
-      : { created_at: -1 }
+    const sortStage: Record<string, 1 | -1> = sort_by ? { [sort_by]: order === 'asc' ? 1 : -1 } : { created_at: -1 }
 
-    const result = await databaseServices.products
-      .aggregate([
-        {
-          $match: matchStage
-        },
-        {
-          $lookup: {
-            from: 'categories',
-            localField: 'category',
-            foreignField: '_id',
-            as: 'category_detail'
+    try {
+      const result = await databaseServices.products
+        .aggregate([
+          {
+            $match: matchStage
+          },
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'category',
+              foreignField: '_id',
+              as: 'category_detail'
+            }
+          },
+          {
+            $unwind: {
+              path: '$category_detail',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $sort: sortStage
+          },
+          {
+            $facet: {
+              metadata: [{ $count: 'total_items' }, { $addFields: { page: page, limit: limit } }],
+              data: [{ $skip: (page - 1) * limit }, { $limit: limit }]
+            }
           }
-        },
-        {
-          $unwind: {
-            path: '$category_detail',
-            preserveNullAndEmptyArrays: true
-          }
-        },
-        {
-          $sort: sortStage
-        },
-        {
-          $facet: {
-            metadata: [{ $count: 'total_items' }, { $addFields: { page: page, limit: limit } }],
-            data: [{ $skip: (page - 1) * limit }, { $limit: limit }]
+        ])
+        .toArray()
+
+      if (!result || result.length === 0) {
+        return {
+          products: [],
+          pagination: {
+            page,
+            limit,
+            total_items: 0,
+            total_pages: 0
           }
         }
-      ])
-      .toArray()
-
-    const products = result[0].data
-    const total_items = result[0].metadata[0]?.total_items || 0
-    const total_pages = Math.ceil(total_items / limit)
-
-    return {
-      products,
-      pagination: {
-        page,
-        limit,
-        total_items,
-        total_pages
       }
+
+      const products = result[0].data
+      const total_items = result[0].metadata?.[0]?.total_items || 0
+      const total_pages = Math.ceil(total_items / limit)
+
+      return {
+        products,
+        pagination: {
+          page,
+          limit,
+          total_items,
+          total_pages
+        }
+      }
+    } catch (error) {
+      console.error('Error in getAllProducts:', error)
+      throw error
     }
   }
 
   async createProduct(payload: CreateProductReqBody) {
-    const categoryExists = await databaseServices.categories.findOne({ _id: new ObjectId(payload.category_id) })
-
-    if (!categoryExists) {
-      throw new ErrorWithStatus({
-        message: USERS_MESSAGES.CATEGORY_NOT_FOUND,
-        status: HTTP_STATUS.NOT_FOUND // HTTP_STATUS.BAD_REQUEST is also good here
-      })
-    }
-
     const newProduct = new Product({
       ...payload,
       category: new ObjectId(payload.category_id)
@@ -189,7 +196,7 @@ class ProductsService {
     return result
   }
 
-  async getTopSellingProducts(limit: number = 10) {
+  async getTopSellingProducts(limit = 10) {
     const cacheKey = `top_selling_products_${limit}`
 
     // 1. Thử lấy từ Redis
@@ -199,8 +206,9 @@ class ProductsService {
         logger.info('Cache HIT: Top Selling Products retrieved from Redis', { cacheKey })
         return JSON.parse(cachedData)
       }
-    } catch (error: any) {
-      logger.warn('Redis error during cache GET, falling back to MongoDB', { error: error.message })
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      logger.warn('Redis error during cache GET, falling back to MongoDB', { error: message })
     }
 
     // 2. Cache MISS hoặc Redis sập -> Query MongoDB
@@ -239,8 +247,9 @@ class ProductsService {
         await redisConnection.setex(cacheKey, 300, JSON.stringify(products))
         logger.info('Cache UPDATED: Top Selling Products stored in Redis', { cacheKey, ttl: 300 })
       }
-    } catch (error: any) {
-      logger.warn('Redis error during cache SET', { error: error.message })
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      logger.warn('Redis error during cache SET', { error: message })
     }
 
     return products
@@ -249,3 +258,5 @@ class ProductsService {
 
 const productsService = new ProductsService()
 export default productsService
+export { ProductsService }
+export type ProductsServiceType = typeof productsService

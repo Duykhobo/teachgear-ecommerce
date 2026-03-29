@@ -1,12 +1,13 @@
-import { ObjectId } from 'mongodb'
+import { ObjectId, Filter } from 'mongodb'
 import databaseServices from '~/common/services/database.service'
-import Order, { CreateOrderReqBody } from '~/modules/orders/orders.schema'
+import Order from './models/orders.model'
+import { CreateOrderReqBody, GetOrdersAdminReqQuery } from './schemas/orders.schema'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { OrderStatus } from '~/common/constants/enums'
 import cartService from '../cart/cart.service'
-import { CartAggregateResult, CartItemAggregate } from '../cart/cart.schema'
+import { CartAggregateResult, CartItemAggregate } from '../cart/types/cart.type'
 
 import { cacheData } from '~/common/utils/cache'
 import { stripe } from '~/common/configs/stripe.config'
@@ -291,7 +292,7 @@ class OrdersService {
     return result
   }
 
-  async getTopSellingProducts(limit: number = 5) {
+  async getTopSellingProducts(limit = 5) {
     return cacheData(`top-selling:${limit}`, async () => {
       return await databaseServices.orders
         .aggregate([
@@ -332,6 +333,63 @@ class OrdersService {
       .toArray()
   }
 
+  async getOrder(user_id: string, order_id: string, isAdmin = false) {
+    const query: Filter<Order> = { _id: new ObjectId(order_id) }
+    if (!isAdmin) {
+      query.user_id = new ObjectId(user_id)
+    }
+
+    const order = await databaseServices.orders.findOne(query)
+    if (!order) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.ORDER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    }
+    return order
+  }
+
+  async getAllOrdersAdmin(query: GetOrdersAdminReqQuery) {
+    const { page, limit, status, search } = query
+    const filter: Filter<Order> = {}
+
+    if (status !== undefined) {
+      filter.status = status
+    }
+
+    if (search) {
+      const searchFilter: Filter<Order>[] = [
+        { 'delivery.receiver_name': { $regex: search, $options: 'i' } },
+        { 'delivery.phone_number': { $regex: search, $options: 'i' } }
+      ]
+      if (ObjectId.isValid(search)) {
+        searchFilter.push({ _id: new ObjectId(search) })
+      }
+      filter.$or = searchFilter
+    }
+
+    const [orders, total_count] = await Promise.all([
+      databaseServices.orders
+        .find(filter)
+        .sort({ created_at: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .toArray(),
+      databaseServices.orders.countDocuments(filter)
+    ])
+
+    return {
+      orders,
+      pagination: {
+        page,
+        limit,
+        total_count,
+        total_pages: Math.ceil(total_count / limit)
+      }
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async handleStripeWebhook(event: any) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object
@@ -342,6 +400,12 @@ class OrdersService {
         const order = await databaseServices.orders.findOne({ _id: new ObjectId(orderId) })
 
         if (order) {
+          // Idempotency check: Skip if already paid
+          if (order.payment.payment_status === 'Paid') {
+            console.log(`[STRIPE WEBHOOK] Order ${orderId} already processed (idempotency).`)
+            return { received: true }
+          }
+
           // 2. Cập nhật trạng thái đơn hàng thành Paid
           await databaseServices.orders.updateOne(
             { _id: new ObjectId(orderId) },

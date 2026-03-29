@@ -21,7 +21,13 @@ export const emailQueue = new Queue<EmailJobPayload>(QUEUE_NAME, {
 
 // 3. Khởi tạo Công nhân (Worker) - CHỈ CHẠY KHI KHÔNG PHẢI MÔI TRƯỜNG TEST
 // Chúng ta dùng let để có thể gán lại giá trị tùy môi trường
-let emailWorker: any
+interface EmailWorker {
+  close: () => Promise<void>
+  on: (event: string, listener: (...args: unknown[]) => void) => void
+  terminate?: () => Promise<void>
+}
+
+let emailWorker: EmailWorker | Worker
 
 if (process.env.NODE_ENV !== 'test') {
   emailWorker = new Worker<EmailJobPayload>(
@@ -30,12 +36,12 @@ if (process.env.NODE_ENV !== 'test') {
       const { type, to, token, orderId, totalAmount } = job.data
       console.log(`[Worker] Processing [${type}] to: ${to}`)
 
-      if (type === 'verify-email') {
-        await emailService.sendVerifyEmail(to, token!)
-      } else if (type === 'forgot-password') {
-        await emailService.sendForgotPasswordEmail(to, token!)
-      } else if (type === 'order-confirmation') {
-        await emailService.sendOrderConfirmationEmail(to, orderId!, totalAmount!, job.data.currency)
+      if (type === 'verify-email' && token) {
+        await emailService.sendVerifyEmail(to, token)
+      } else if (type === 'forgot-password' && token) {
+        await emailService.sendForgotPasswordEmail(to, token)
+      } else if (type === 'order-confirmation' && orderId && totalAmount) {
+        await emailService.sendOrderConfirmationEmail(to, orderId, totalAmount, job.data.currency)
       }
     },
     {
@@ -74,7 +80,8 @@ export const enqueueEmailJob = async (payload: EmailJobPayload) => {
         delay: 2000
       }
     })
-  } catch (error: any) {
-    console.error(`[Queue] Failed to enqueue email job [${payload.type}] to ${payload.to}:`, error.message)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error(`[Queue] Failed to enqueue email job [${payload.type}] to ${payload.to}:`, message)
   }
 }

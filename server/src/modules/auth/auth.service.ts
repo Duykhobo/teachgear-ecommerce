@@ -2,9 +2,9 @@ import { signToken } from '~/common/utils/jwt'
 import databaseServices from '~/common/services/database.service'
 import { TokenType, USER_ROLE, UserVerifyStatus } from '~/common/constants/enums'
 import ms from 'ms'
-import { ForgotPasswordReqBody, LoginReqBody, RegisterReqBody } from '~/modules/auth/auth.schema'
+import { ForgotPasswordReqBody, LoginReqBody, RegisterReqBody } from './types/auth.types'
 import { ObjectId } from 'mongodb'
-import User from '~/modules/users/users.schema'
+import User from '~/modules/users/models/user.model'
 import { comparePassword, hashPassword } from '~/common/utils/crypto'
 // import RefreshToken from '~/modules/auth/auth.schema'
 import HTTP_STATUS from '~/common/constants/httpStatus'
@@ -136,8 +136,8 @@ class AuthService {
     const user_id = user._id.toString()
     const role = user.role
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id, role)
-    
-    // Sử dụng updateOne với upsert: true để tránh lỗi 11000 (duplicate key) 
+
+    // Sử dụng updateOne với upsert: true để tránh lỗi 11000 (duplicate key)
     // nếu login quá nhanh trong cùng 1 giây dẫn đến trùng token iat.
     await databaseServices.refreshTokens.updateOne(
       { token: refresh_token },

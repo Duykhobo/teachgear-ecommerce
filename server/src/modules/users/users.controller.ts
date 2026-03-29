@@ -1,13 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
-import { UpdateMeReqBody } from '~/modules/users/users.schema'
+import { UpdateMeReqBody } from './types/user.types'
 
 import usersService from '~/modules/users/users.service'
 import { ParamsDictionary } from 'express-serve-static-core'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
-import { TokenPayload } from '~/modules/auth/auth.schema'
-
-
+import { TokenPayload } from '../auth/types/auth.types'
 
 // 1. Get current user profile Controller
 export const getMeController = async (req: Request, res: Response, _next: NextFunction) => {
@@ -21,7 +19,7 @@ export const getMeController = async (req: Request, res: Response, _next: NextFu
 
 // 2. Update current user profile Controller
 export const updateMeController = async (
-  req: Request<ParamsDictionary, any, UpdateMeReqBody>,
+  req: Request<ParamsDictionary, unknown, UpdateMeReqBody>,
   res: Response,
   _next: NextFunction
 ) => {

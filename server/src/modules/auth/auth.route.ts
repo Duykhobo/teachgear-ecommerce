@@ -5,7 +5,7 @@ import {
   LoginSchema,
   RegisterSchema,
   ResetPasswordSchema
-} from '~/modules/auth/auth.schema'
+} from './schemas/auth.validation'
 import { wrapAsync } from '~/common/utils/handler'
 import {
   emailVerifyController,
@@ -232,7 +232,12 @@ authRoutes.post('/verify-forgot-password', forgotPasswordTokenValidator, wrapAsy
  *       429:
  *         description: Too many requests.
  */
-authRoutes.post('/forgot-password', emailActionLimiter, validate(ForgotPasswordSchema), wrapAsync(forgotPasswordController))
+authRoutes.post(
+  '/forgot-password',
+  emailActionLimiter,
+  validate(ForgotPasswordSchema),
+  wrapAsync(forgotPasswordController)
+)
 
 /**
  * @swagger
@@ -282,6 +287,11 @@ authRoutes.post(
  *       400:
  *         description: Email is already verified or account is banned.
  */
-authRoutes.post('/resend-verify-email', emailActionLimiter, accessTokenValidator, wrapAsync(resendEmailVerifyController))
+authRoutes.post(
+  '/resend-verify-email',
+  emailActionLimiter,
+  accessTokenValidator,
+  wrapAsync(resendEmailVerifyController)
+)
 
 export default authRoutes

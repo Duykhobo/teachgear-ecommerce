@@ -14,15 +14,17 @@ paymentRoutes.post('/webhook', express.raw({ type: 'application/json' }), async 
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, envConfig.STRIPE_WEBHOOK_SECRET)
-  } catch (err: any) {
-    logger.error(`Webhook Error: ${err.message}`)
-    res.status(400).send(`Webhook Error: ${err.message}`)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    logger.error(`Webhook Error: ${message}`)
+    res.status(400).send(`Webhook Error: ${message}`)
     return
   }
 
   // Handle the event
   switch (event.type) {
-    case 'checkout.session.completed':
+    case 'checkout.session.completed': {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const session = event.data.object as any
       const orderId = session.metadata.order_id
 
@@ -41,14 +43,16 @@ paymentRoutes.post('/webhook', express.raw({ type: 'application/json' }), async 
         }
       )
       break
-    
+    }
+
     case 'checkout.session.expired':
-    case 'checkout.session.async_payment_failed':
+    case 'checkout.session.async_payment_failed': {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const failedSession = event.data.object as any
       const failedOrderId = failedSession.metadata.order_id
-      
+
       logger.warn(`Payment failed or expired for Order: ${failedOrderId}`)
-      
+
       await databaseServices.orders.updateOne(
         { _id: new ObjectId(failedOrderId) },
         {
@@ -60,6 +64,7 @@ paymentRoutes.post('/webhook', express.raw({ type: 'application/json' }), async 
         }
       )
       break
+    }
 
     default:
       logger.info(`Unhandled event type ${event.type}`)

@@ -3,7 +3,8 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import databaseServices from '~/common/services/database.service'
-import { AddToCartReqBody, CartAggregateResult } from './cart.schema'
+import { CartAggregateResult } from './types/cart.type'
+import { AddToCartReqBody } from './schemas/cart.schema'
 
 class CartService {
   async addToCart(user_id: string, payload: AddToCartReqBody) {

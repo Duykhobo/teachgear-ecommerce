@@ -2,11 +2,11 @@ import { NextFunction, Request, RequestHandler, Response } from 'express'
 
 // P: Params, ResBody: Response Body, ReqBody: Request Body, ReqQuery: Request Query
 export const wrapAsync = <
-  P = any,
-  ResBody = any,
-  ReqBody = any,
-  ReqQuery = any,
-  Locals extends Record<string, any> = Record<string, any>
+  P = unknown,
+  ResBody = unknown,
+  ReqBody = unknown,
+  ReqQuery = unknown,
+  Locals extends Record<string, unknown> = Record<string, unknown>
 >(
   func: RequestHandler<P, ResBody, ReqBody, ReqQuery, Locals>
 ) => {

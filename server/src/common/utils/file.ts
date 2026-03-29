@@ -36,13 +36,12 @@ export const handleUploadImage = async (req: Request) => {
       //nếu sai valid thì dùng form.emit để gữi lỗi
       if (!valid) {
         form.emit(
-          'error' as any,
+          'error' as unknown as 'error',
           new ErrorWithStatus({
             message: 'File type is not valid',
             status: HTTP_STATUS.BAD_REQUEST
-          }) as any
+          }) as unknown as Error
         )
-        //as any vì bug này formidable chưa fix, khi nào hết thì bỏ as any
       }
       //nếu đúng thì return valid
       return valid
@@ -98,13 +97,12 @@ export const handleUploadVideo = async (req: Request) => {
       //nếu sai valid thì dùng form.emit để gữi lỗi
       if (!valid) {
         form.emit(
-          'error' as any,
+          'error' as unknown as 'error',
           new ErrorWithStatus({
             message: 'File type is not valid',
             status: HTTP_STATUS.BAD_REQUEST
-          }) as any
+          }) as unknown as Error
         )
-        //as any vì bug này formidable chưa fix, khi nào hết thì bỏ as any
       }
       return valid
     }

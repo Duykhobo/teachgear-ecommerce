@@ -44,3 +44,21 @@ export const emailActionLimiter = rateLimit({
     return ipKeyGenerator(ip)
   }
 })
+
+// Giới hạn chung toàn server: 100 request / 15 phút / IP
+export const globalRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    message: 'Too many requests from this IP, please try again after 15 minutes.',
+    status: HTTP_STATUS.TOO_MANY_REQUESTS
+  },
+  statusCode: HTTP_STATUS.TOO_MANY_REQUESTS,
+  keyGenerator: (req) => {
+    const forwarded = req.headers['x-forwarded-for']
+    const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : (req.ip ?? '::1')
+    return ipKeyGenerator(ip)
+  }
+})

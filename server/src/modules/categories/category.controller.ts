@@ -1,10 +1,14 @@
 import { Request, Response } from 'express'
+import { ParamsDictionary } from 'express-serve-static-core'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
-import { CategoryReqParams, CreateCategoryReqBody, UpdateCategoryReqBody } from './category.schema'
+import { CategoryReqParams, CreateCategoryReqBody, UpdateCategoryReqBody } from './schemas/category.schema'
 import categoryService from './category.service'
 
-export const createCategoryController = async (req: Request<any, any, CreateCategoryReqBody>, res: Response) => {
+export const createCategoryController = async (
+  req: Request<ParamsDictionary, unknown, CreateCategoryReqBody>,
+  res: Response
+) => {
   const result = await categoryService.createCategory(req.body)
   return res.status(HTTP_STATUS.CREATED).json({
     message: USERS_MESSAGES.CREATE_CATEGORY_SUCCESS,
@@ -21,7 +25,7 @@ export const getAllCategoriesController = async (_req: Request, res: Response) =
 }
 
 export const updateCategoryController = async (
-  req: Request<CategoryReqParams, any, UpdateCategoryReqBody>,
+  req: Request<CategoryReqParams, unknown, UpdateCategoryReqBody>,
   res: Response
 ) => {
   const { id } = req.params

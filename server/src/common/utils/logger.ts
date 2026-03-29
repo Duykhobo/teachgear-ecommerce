@@ -30,7 +30,7 @@ const consoleFormat = combine(
   printf(({ level, message, timestamp, status, requestId, userId, ...meta }) => {
     // 1. Rút gọn Request ID (lấy 8 ký tự đầu)
     const reqId = requestId ? `[${requestId.toString().substring(0, 8)}]` : ''
-    
+
     // 2. Định dạng User ID
     const uId = userId ? `[User:${userId}]` : ''
 
@@ -38,8 +38,10 @@ const consoleFormat = combine(
     let statusPart = ''
     if (status) {
       const s = Number(status)
-      if (s >= 500) statusPart = `\x1b[31m[${s}]\x1b[0m` // Red for 5xx
-      else if (s >= 400) statusPart = `\x1b[33m[${s}]\x1b[0m` // Yellow for 4xx
+      if (s >= 500)
+        statusPart = `\x1b[31m[${s}]\x1b[0m` // Red for 5xx
+      else if (s >= 400)
+        statusPart = `\x1b[33m[${s}]\x1b[0m` // Yellow for 4xx
       else statusPart = `\x1b[32m[${s}]\x1b[0m` // Green for 2xx/others
     }
 

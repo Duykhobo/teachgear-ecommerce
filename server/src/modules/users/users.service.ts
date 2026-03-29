@@ -3,7 +3,7 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import databaseServices from '~/common/services/database.service'
-import { UpdateMeReqBody } from '~/modules/users/users.schema'
+import { UpdateMeReqBody } from './types/user.types'
 
 // Gợi ý khung code
 class UsersService {

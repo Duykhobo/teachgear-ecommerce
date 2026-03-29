@@ -14,11 +14,11 @@ import {
   ResetPasswordReqBody,
   TokenPayload,
   EmailVerifyReqBody
-} from '~/modules/auth/auth.schema'
+} from './types/auth.types'
 import { UserVerifyStatus } from '~/common/constants/enums'
 
 //1. register controller
-export const registerController = async (req: Request<ParamsDictionary, any, RegisterReqBody>, res: Response) => {
+export const registerController = async (req: Request<ParamsDictionary, unknown, RegisterReqBody>, res: Response) => {
   const isEmailExist = await databaseServices.users.findOne({ email: req.body.email })
   if (isEmailExist) {
     throw new ErrorWithStatus({
@@ -33,7 +33,7 @@ export const registerController = async (req: Request<ParamsDictionary, any, Reg
   })
 }
 // 2. login controller
-export const loginController = async (req: Request<ParamsDictionary, any, LoginReqBody>, res: Response) => {
+export const loginController = async (req: Request<ParamsDictionary, unknown, LoginReqBody>, res: Response) => {
   const result = await authService.login(req.body)
 
   return res.status(HTTP_STATUS.OK).json({
@@ -43,7 +43,7 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
 }
 
 export const refreshTokenController = async (
-  req: Request<ParamsDictionary, any, RefreshTokenReqBody>,
+  req: Request<ParamsDictionary, unknown, RefreshTokenReqBody>,
   res: Response
 ) => {
   const { user_id, role } = req.decoded_refresh_token as TokenPayload
@@ -55,7 +55,7 @@ export const refreshTokenController = async (
   })
 }
 
-export const logoutController = async (req: Request<ParamsDictionary, any, LogoutReqBody>, res: Response) => {
+export const logoutController = async (req: Request<ParamsDictionary, unknown, LogoutReqBody>, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload
   const { refresh_token } = req.body
   await authService.logout({ user_id, refresh_token })
@@ -64,7 +64,10 @@ export const logoutController = async (req: Request<ParamsDictionary, any, Logou
   })
 }
 
-export const emailVerifyController = async (req: Request<ParamsDictionary, any, EmailVerifyReqBody>, res: Response) => {
+export const emailVerifyController = async (
+  req: Request<ParamsDictionary, unknown, EmailVerifyReqBody>,
+  res: Response
+) => {
   const { user_id } = req.decoded_email_verify_token as TokenPayload
   const { email_verify_token } = req.body
   await authService.checkEmailVerifyToken({ user_id, email_verify_token })
@@ -75,7 +78,10 @@ export const emailVerifyController = async (req: Request<ParamsDictionary, any, 
   })
 }
 
-export const verifyForgotPasswordTokenController = async (_req: Request<ParamsDictionary, any, any>, res: Response) => {
+export const verifyForgotPasswordTokenController = async (
+  _req: Request<ParamsDictionary, unknown, unknown>,
+  res: Response
+) => {
   // Logic verify done in middleware
   return res.status(HTTP_STATUS.OK).json({
     message: USERS_MESSAGES.VERIFY_FORGOT_PASSWORD_TOKEN_SUCCESS
@@ -83,7 +89,7 @@ export const verifyForgotPasswordTokenController = async (_req: Request<ParamsDi
 }
 
 export const forgotPasswordController = async (
-  req: Request<ParamsDictionary, any, ForgotPasswordReqBody>,
+  req: Request<ParamsDictionary, unknown, ForgotPasswordReqBody>,
   res: Response
 ) => {
   const result = await authService.forgotPassword(req.body)
@@ -91,7 +97,7 @@ export const forgotPasswordController = async (
 }
 
 export const resetPasswordController = async (
-  req: Request<ParamsDictionary, any, ResetPasswordReqBody>,
+  req: Request<ParamsDictionary, unknown, ResetPasswordReqBody>,
   res: Response
 ) => {
   const { user_id } = req.decoded_forgot_password_token as TokenPayload

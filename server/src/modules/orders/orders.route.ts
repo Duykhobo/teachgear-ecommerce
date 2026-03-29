@@ -1,7 +1,11 @@
 import { Router } from 'express'
 import { accessTokenValidator } from '~/modules/auth/auth.middleware'
 import { adminMiddleware } from '~/common/middlewares/common.middleware'
-import { createOrderValidator, updateOrderStatusValidator } from '~/modules/orders/orders.middleware'
+import {
+  createOrderValidator,
+  updateOrderStatusValidator,
+  getOrdersAdminValidator
+} from '~/modules/orders/orders.middleware'
 import {
   createOrderController,
   cancelOrderController,
@@ -9,6 +13,8 @@ import {
   getRevenueController,
   getTopSellingProductsController,
   getUserOrdersController,
+  getOrderController,
+  getAllOrdersAdminController,
   handleStripeWebhookController
 } from '~/modules/orders/orders.controller'
 import { wrapAsync } from '~/common/utils/handler'
@@ -171,6 +177,47 @@ orderRoutes.patch(
 
 /**
  * @swagger
+ * /orders/admin/orders:
+ *   get:
+ *     summary: List all orders (Admin only)
+ *     tags: [Orders]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: integer
+ *           description: Filter by OrderStatus enum
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *           description: Search by name, phone or ID
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+orderRoutes.get(
+  '/admin/orders',
+  accessTokenValidator,
+  adminMiddleware,
+  getOrdersAdminValidator,
+  wrapAsync(getAllOrdersAdminController)
+)
+
+/**
+ * @swagger
  * /orders/me:
  *   get:
  *     summary: Get current user's order history
@@ -182,5 +229,25 @@ orderRoutes.patch(
  *         description: Returns user's list of orders.
  */
 orderRoutes.get('/me', accessTokenValidator, wrapAsync(getUserOrdersController))
+
+/**
+ * @swagger
+ * /orders/{id}:
+ *   get:
+ *     summary: Get specific order details
+ *     tags: [Orders]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+orderRoutes.get('/:id', accessTokenValidator, wrapAsync(getOrderController))
 
 export default orderRoutes

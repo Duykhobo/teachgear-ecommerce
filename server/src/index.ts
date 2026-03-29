@@ -1,8 +1,10 @@
-import express from 'express'
+import express, { Request } from 'express'
 import swaggerUi from 'swagger-ui-express'
+import cors from 'cors'
 import { swaggerSpec } from './common/configs/swagger.config'
 import databaseServices from './common/services/database.service'
 import { defaultErrorHandler } from './common/middlewares/error.middleware'
+import { globalRateLimiter } from './common/middlewares/rate-limit.middleware'
 // import dotenv from 'dotenv' - Đã gỡ
 import authRoutes from './modules/auth/auth.route'
 import userRoutes from './modules/users/users.route'
@@ -19,13 +21,24 @@ import { redisConnection } from './common/configs/redis.config'
 import morgan from 'morgan'
 import logger from '~/common/utils/logger'
 import { requestIdMiddleware } from './common/middlewares/requestId.middleware'
-import { TokenPayload } from './modules/auth/auth.schema'
+import { TokenPayload } from './modules/auth/types/auth.types'
 
 // dotenv.config() - Đã load ở configs.ts, không cần gọi lại nữa
 
 initFolder()
 
 const app = express() //tạo server
+
+// 1. Cấu hình CORS: Cho phép Frontend truy cập
+app.use(
+  cors({
+    origin: ['http://localhost:5173', 'http://localhost:3000'], // Địa chỉ Frontend (Vite mặc định là 5173)
+    credentials: true // Cho phép gửi cookie nếu cần
+  })
+)
+
+// 2. Rate Limiting: Bảo vệ server khỏi spam request
+app.use(globalRateLimiter)
 
 app.get('/', (_req, res) => {
   res.status(200).json({
@@ -49,7 +62,8 @@ app.use(express.urlencoded({ extended: true }))
 
 // Morgan middleware: Ghi log request thông minh
 app.use(
-  morgan((tokens, req: any, res) => {
+  morgan((tokens, req, res) => {
+    const _req = req as Request & { id?: string; decoded_authorization?: TokenPayload }
     const status = Number(tokens.status(req, res))
     const message = [
       tokens.method(req, res),
@@ -60,8 +74,8 @@ app.use(
       'ms'
     ].join(' ')
 
-    const requestId = req.id // Lấy ID từ middleware
-    const userId = (req.decoded_authorization as TokenPayload)?.user_id // Lấy User ID nếu đã login
+    const requestId = _req.id // Lấy ID từ middleware
+    const userId = (_req.decoded_authorization as TokenPayload)?.user_id // Lấy User ID nếu đã login
 
     // Gửi log qua winston kèm theo metadata
     logger.http(message.trim(), { status, requestId, userId })
@@ -104,7 +118,7 @@ app.get('/health', async (_req, res) => {
     healthStatus.services.redis = 'healthy'
 
     res.status(200).json(healthStatus)
-  } catch (error) {
+  } catch {
     healthStatus.message = 'unhealthy'
     res.status(503).json(healthStatus)
   }
@@ -112,7 +126,7 @@ app.get('/health', async (_req, res) => {
 
 app.use(defaultErrorHandler)
 
-let server: any
+let server: ReturnType<typeof app.listen>
 if (process.env.NODE_ENV !== 'test') {
   databaseServices.connect().then(() => {
     server = app.listen(PORT, () => {
@@ -140,22 +154,25 @@ const gracefulShutdown = async (signal: string) => {
   try {
     logger.info('Closing Email Worker...')
     await emailWorker.close()
-  } catch (error: any) {
-    logger.error('Error closing Worker:', { error: error.message })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    logger.error('Error closing Worker:', { error: message })
   }
 
   try {
     logger.info('Closing MongoDB connection...')
     await databaseServices.client.close()
-  } catch (error: any) {
-    logger.error('Error closing MongoDB:', { error: error.message })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    logger.error('Error closing MongoDB:', { error: message })
   }
 
   try {
     logger.info('Disconnecting Redis...')
     redisConnection.disconnect()
-  } catch (error: any) {
-    logger.error('Lỗi khi đóng Redis:', { error: error.message })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    logger.error('Lỗi khi đóng Redis:', { error: message })
   }
 
   // 4. THÀNH CÔNG RÚT LUI
@@ -174,10 +191,12 @@ if (process.env.NODE_ENV !== 'test') {
     gracefulShutdown('uncaughtException')
   })
 
-  process.on('unhandledRejection', (reason: any) => {
+  process.on('unhandledRejection', (reason: unknown) => {
+    const message = reason instanceof Error ? reason.message : String(reason)
+    const stack = reason instanceof Error ? reason.stack : undefined
     logger.error('Unhandled Rejection:', {
-      reason: reason?.message || reason,
-      stack: reason?.stack
+      reason: message,
+      stack
     })
     gracefulShutdown('unhandledRejection')
   })
