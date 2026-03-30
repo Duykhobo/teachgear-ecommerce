@@ -11,6 +11,8 @@ export default class Product {
   sold_quantity?: number
   images?: { url: string }[]
   is_active: boolean
+  created_at: Date
+  updated_at: Date
 
   constructor(product: ProductType) {
     this._id = product._id || new ObjectId()
@@ -22,5 +24,7 @@ export default class Product {
     this.sold_quantity = product.sold_quantity || 0
     this.images = product.images || []
     this.is_active = product.is_active !== undefined ? product.is_active : true
+    this.created_at = product.created_at || new Date()
+    this.updated_at = product.updated_at || new Date()
   }
 }

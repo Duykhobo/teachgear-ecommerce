@@ -52,6 +52,16 @@ export const PaginationQuerySchema = z.object({
     .regex(/^[0-9a-fA-F]{24}$/, USERS_MESSAGES.INVALID_CATEGORY_ID)
     .optional(),
   name: z.string().optional(),
-  sort_by: z.enum(['created_at', 'price']).optional(),
+  min_price: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseFloat(val) : undefined))
+    .pipe(z.number().nonnegative().optional()),
+  max_price: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseFloat(val) : undefined))
+    .pipe(z.number().nonnegative().optional()),
+  sort_by: z.enum(['created_at', 'price', 'name', 'sold_quantity', 'stock_quantity']).optional(),
   order: z.enum(['asc', 'desc']).optional()
 })

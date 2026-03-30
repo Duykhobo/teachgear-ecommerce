@@ -64,6 +64,16 @@ class ProductsService {
       matchStage.name = { $regex: name, $options: 'i' }
     }
 
+    if (query.min_price !== undefined || query.max_price !== undefined) {
+      matchStage.price = {}
+      if (query.min_price !== undefined) {
+        matchStage.price.$gte = query.min_price
+      }
+      if (query.max_price !== undefined) {
+        matchStage.price.$lte = query.max_price
+      }
+    }
+
     const sortStage: Record<string, 1 | -1> = sort_by ? { [sort_by]: order === 'asc' ? 1 : -1 } : { created_at: -1 }
 
     try {

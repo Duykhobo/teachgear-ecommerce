@@ -38,6 +38,8 @@ export interface ProductType {
   sold_quantity?: number
   images?: ProductImageType[]
   is_active?: boolean
+  created_at?: Date
+  updated_at?: Date
 }
 
 export interface ProductWithCategory extends ProductType {
