@@ -10,6 +10,7 @@ import fs from 'fs'
 import mime from 'mime-types'
 import { UPLOAD_VIDEO_DIR } from '~/common/constants/dir'
 import path from 'path'
+import { handleUploadImageProducts, handleUploadImageUser } from '~/common/utils/file'
 
 export const uploadVideoController = async (req: Request, res: Response) => {
   const result = await mediasService.uploadVideo(req)
@@ -19,30 +20,43 @@ export const uploadVideoController = async (req: Request, res: Response) => {
   })
 }
 
-export const uploadImageController = async (req: Request, res: Response) => {
-  //middleware accessTokenValidator đã chạy rồi, nên ta có thể lấy đc user_id từ decoded_authorization
+export const uploadUserAvatarController = async (req: Request, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload
-  //user_id để biết phải cập nhật ai
+
   const user = await usersService.findUserById(user_id)
-  //kiểm tra user đã verify email chưa, nếu chưa thì không cho cập nhật
+
   if (user.verify === UserVerifyStatus.Unverified) {
     throw new ErrorWithStatus({
-      message: USERS_MESSAGES.USER_NOT_VERIFIED,
+      message: USERS_MESSAGES.ACCOUNT_NOT_VERIFIED,
       status: HTTP_STATUS.UNAUTHORIZED
     })
-  }
-  //bị banned thì cũng không cho cập nhật
-  if (user.verify === UserVerifyStatus.Banned) {
+  } else if (user.verify === UserVerifyStatus.Banned) {
     throw new ErrorWithStatus({
       message: USERS_MESSAGES.ACCOUNT_HAS_BEEN_BANNED,
       status: HTTP_STATUS.UNAUTHORIZED
     })
   }
-  //sửa data thành url cho hợp với ngữ cảnh
-  const url = await mediasService.uploadImage(req)
+
+  const files = await handleUploadImageUser(req)
+
+  const singleFile = files[0]
+
+  const result = await mediasService.uploadAvatarMethod(singleFile)
+
   return res.status(HTTP_STATUS.OK).json({
     message: USERS_MESSAGES.UPLOAD_IMAGE_SUCCESS,
-    result: url
+    result
+  })
+}
+
+export const uploadProductImageController = async (req: Request, res: Response) => {
+  const files = await handleUploadImageProducts(req)
+
+  const result = await mediasService.uploadProductImageMethod(files)
+
+  return res.status(HTTP_STATUS.OK).json({
+    message: USERS_MESSAGES.UPLOAD_IMAGE_SUCCESS,
+    result
   })
 }
 

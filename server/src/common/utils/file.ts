@@ -15,19 +15,19 @@ export const initFolder = () => {
   })
 }
 
-export const handleUploadImage = async (req: Request) => {
+export const handleUploadImageUser = async (req: Request) => {
   const form = formidable({
     uploadDir: UPLOAD_IMAGE_TEMP_DIR,
-    maxFiles: 4,
+    maxFiles: 1, //user chỉ up 1 ảnh cho 1 lần muốn thay đổi avatar
     keepExtensions: true,
-    maxFileSize: 1920 * 1080,
-    maxTotalFileSize: 1920 * 1080 * 4,
+    maxFileSize: 2 * 1024 * 1024, //2MB
+    maxTotalFileSize: 2 * 1024 * 1024,
     //xài option filter để kiểm tra file có phải là image không
     filter: function ({ name, originalFilename, mimetype }) {
       //name: name|key truyền vào của <input name = bla bla>
       //originalFilename: tên file gốc
       //mimetype: kiểu file vd: image/png
-      // console.log(name, originalFilename, mimetype) //log để xem, nhớ comment
+      console.log(name, originalFilename, mimetype) //log để xem, nhớ comment
 
       const valid = name === 'image' && Boolean(mimetype?.includes('image/'))
       //mimetype? nếu là string thì check, k thì thôi
@@ -39,7 +39,7 @@ export const handleUploadImage = async (req: Request) => {
           'error' as any,
           new ErrorWithStatus({
             message: 'File type is not valid',
-            status: HTTP_STATUS.BAD_REQUEST
+            status: HTTP_STATUS.UNSUPPORTED_MEDIA_TYPE
           }) as any
         )
         //as any vì bug này formidable chưa fix, khi nào hết thì bỏ as any
@@ -74,6 +74,65 @@ export const handleUploadImage = async (req: Request) => {
   })
 }
 
+export const handleUploadImageProducts = async (req: Request) => {
+  const form = formidable({
+    uploadDir: UPLOAD_IMAGE_TEMP_DIR,
+    maxFiles: 4, //user chỉ up 4 ảnh cho 1 lần muốn thay đổi ảnh sản phẩm
+    keepExtensions: true,
+    maxFileSize: 5 * 1024 * 1024, //5MB
+    maxTotalFileSize: 20 * 1024 * 1024, //20MB
+    //xài option filter để kiểm tra file có phải là image không
+    filter: function ({ name, originalFilename, mimetype }) {
+      //name: name|key truyền vào của <input name = bla bla>
+      //originalFilename: tên file gốc
+      //mimetype: kiểu file vd: image/png
+      console.log(name, originalFilename, mimetype) //log để xem, nhớ comment
+
+      const valid = name === 'image' && Boolean(mimetype?.includes('image/'))
+      //mimetype? nếu là string thì check, k thì thôi
+      //ép Boolean luôn, nếu k thì valid sẽ là boolean | undefined
+
+      //nếu sai valid thì dùng form.emit để gữi lỗi
+      if (!valid) {
+        form.emit(
+          'error' as any,
+          new ErrorWithStatus({
+            message: 'File type is not valid',
+            status: HTTP_STATUS.UNSUPPORTED_MEDIA_TYPE
+          }) as any
+        )
+        //as any vì bug này formidable chưa fix, khi nào hết thì bỏ as any
+      }
+      //nếu đúng thì return valid
+      return valid
+    }
+  })
+  //form.parse về thành promise
+  //files là object có dạng giống hình test code cuối cùng
+  return new Promise<File[]>((resolve, reject) => {
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        return reject(
+          new ErrorWithStatus({
+            message: err.message,
+            status: HTTP_STATUS.BAD_REQUEST
+          })
+        )
+      }
+      //nếu files từ req gửi lên không có key image thì reject
+      if (!files.image) {
+        return reject(
+          new ErrorWithStatus({
+            message: 'Image is empty',
+            status: HTTP_STATUS.BAD_REQUEST
+          })
+        )
+      }
+      resolve(files.image as File[])
+    })
+  })
+}
+
 export const getNameFromFullName = (fileName: string) => {
   const nameArr = fileName.split('.')
   nameArr.pop()
@@ -90,8 +149,8 @@ export const handleUploadVideo = async (req: Request) => {
     uploadDir: UPLOAD_VIDEO_DIR, //vì video nên mình không đi qua bước xử lý trung gian nên mình sẽ k bỏ video vào temp
     maxFiles: 1, //tối đa bao nhiêu
     // keepExtensions: true, //có lấy đuôi mở rộng không .png, .jpg "nếu file có dạng asdasd.app.mp4 thì lỗi, nên mình sẽ xử lý riêng
-    maxFileSize: 100 * 1024 * 1024, //tối đa bao nhiêu byte, 100MB
-    maxTotalFileSize: 100 * 1024 * 1024,
+    maxFileSize: 1920 * 1080 * 60, //1920x1080 60fps 10s
+    maxTotalFileSize: 1920 * 1080 * 60,
     //xài option filter để kiểm tra file có phải là video không
     filter: function ({ name, originalFilename, mimetype }) {
       const valid = name === 'video' && Boolean(mimetype?.includes('video/'))

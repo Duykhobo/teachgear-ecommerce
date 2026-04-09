@@ -1,44 +1,73 @@
+import { File } from 'formidable'
 import { Request } from 'express'
-import { handleUploadImage, handleUploadVideo } from '~/common/utils/file'
+import { handleUploadVideo, getNameFromFullName } from '~/common/utils/file'
 import { Media } from './type'
 import { MediaType } from '~/common/constants/enums'
 import fs from 'fs'
 import cloudinary from 'cloudinary'
 import { envConfig } from '~/common/configs/configs'
+import sharp from 'sharp'
+import { ErrorWithStatus } from '~/common/models/Errors'
+import { USERS_MESSAGES } from '~/common/constants/messages'
+import HTTP_STATUS from '~/common/constants/httpStatus'
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 })
 class MediasService {
-  async uploadImage(req: Request) {
-    const files = handleUploadImage(req)
+  async uploadAvatarMethod(file: File) {
+    const filepath = file.filepath
+    const newFilepath = filepath + '.webp'
+    try {
+      await sharp(filepath).resize(500, 500).webp().toFile(newFilepath)
 
-    const result: Media[] = await Promise.all(
-      (await files).map(async (file) => {
-        const filePath = file.filepath
-        try {
-          const uploadResult = await cloudinary.v2.uploader.upload(filePath, {
-            folder: 'techgear-ecommerce/products',
-            use_filename: true
-          })
-
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath)
-          }
-
-          return {
-            url: uploadResult.secure_url,
-            type: MediaType.Image
-          }
-        } catch (error) {
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath)
-          }
-          throw error
-        }
+      const result = await cloudinary.v2.uploader.upload(newFilepath, {
+        folder: 'techgear/avatars',
+        public_id: getNameFromFullName(file.newFilename)
       })
-    )
+      return {
+        url: result.secure_url
+      }
+    } catch (error) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.UPLOAD_IMAGE_FAIL,
+        status: HTTP_STATUS.INTERNAL_SERVER_ERROR
+      })
+    } finally {
+      if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath)
+      }
+      if (fs.existsSync(newFilepath)) {
+        fs.unlinkSync(newFilepath)
+      }
+    }
+  }
+
+  async uploadProductImageMethod(files: File[]) {
+    const uploadPromises = files.map(async (file) => {
+      const filepath = file.filepath
+      try {
+        const result = await cloudinary.v2.uploader.upload(filepath, {
+          folder: 'techgear/product-images',
+          public_id: getNameFromFullName(file.newFilename)
+        })
+        return {
+          url: result.secure_url
+        }
+      } catch (error) {
+        throw new ErrorWithStatus({
+          message: `Error upload image product ${file.originalFilename}`,
+          status: HTTP_STATUS.INTERNAL_SERVER_ERROR
+        })
+      } finally {
+        if (fs.existsSync(filepath)) {
+          fs.unlinkSync(filepath)
+        }
+      }
+    })
+
+    const result = await Promise.all(uploadPromises)
     return result
   }
 

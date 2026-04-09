@@ -5,6 +5,7 @@ import { ErrorWithStatus } from '~/common/models/Errors'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import authService from '~/modules/auth/auth.service'
+import { envConfig } from '~/common/configs/configs'
 import {
   ForgotPasswordReqBody,
   LoginReqBody,
@@ -66,13 +67,21 @@ export const logoutController = async (req: Request<ParamsDictionary, any, Logou
 
 export const emailVerifyController = async (req: Request<ParamsDictionary, any, EmailVerifyReqBody>, res: Response) => {
   const { user_id } = req.decoded_email_verify_token as TokenPayload
-  const { email_verify_token } = req.body
-  await authService.checkEmailVerifyToken({ user_id, email_verify_token })
+  const email_verify_token = req.body.email_verify_token || req.query.token
+  await authService.checkEmailVerifyToken({ user_id, email_verify_token: email_verify_token as string })
   const result = await authService.verifyEmail(user_id)
   return res.status(HTTP_STATUS.OK).json({
     message: USERS_MESSAGES.EMAIL_VERIFY_SUCCESS,
     result
   })
+}
+
+export const emailVerifyGetController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const { user_id } = req.decoded_email_verify_token as TokenPayload
+  const email_verify_token = req.query.token as string
+  await authService.checkEmailVerifyToken({ user_id, email_verify_token })
+  await authService.verifyEmail(user_id)
+  return res.redirect(`${envConfig.CLIENT_URL || 'http://localhost:5173'}/login?status=success`)
 }
 
 export const verifyForgotPasswordTokenController = async (_req: Request<ParamsDictionary, any, any>, res: Response) => {

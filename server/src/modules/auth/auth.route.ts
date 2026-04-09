@@ -9,6 +9,7 @@ import {
 import { wrapAsync } from '~/common/utils/handler'
 import {
   emailVerifyController,
+  emailVerifyGetController,
   forgotPasswordController,
   loginController,
   logoutController,
@@ -41,6 +42,12 @@ authRoutes.post(
   emailVerifyTokenValidator,
   validate(EmailVerifySchema),
   wrapAsync(emailVerifyController)
+)
+
+authRoutes.get(
+  '/verify-email',
+  emailVerifyTokenValidator,
+  wrapAsync(emailVerifyGetController)
 )
 
 authRoutes.post('/verify-forgot-password', forgotPasswordTokenValidator, wrapAsync(verifyForgotPasswordTokenController))

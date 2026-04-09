@@ -18,7 +18,7 @@ class EmailService {
 
   async sendVerifyEmail(to: string, token: string) {
     const subject = 'Welcome to TechGear! Verify your email'
-    const verificationLink = `${envConfig.CLIENT_URL}/verify-email?token=${token}`
+    const verificationLink = `http://localhost:${envConfig.PORT || 3000}/auth/verify-email?token=${token}`
     const html = this.getTemplate(
       'Verify Your Email Address',
       `Welcome to TechGear! We're excited to have you on board.<br/>Please verify your email address to get access to all our features.`,
@@ -30,7 +30,7 @@ class EmailService {
 
   async sendForgotPasswordEmail(to: string, token: string) {
     const subject = 'Reset Your Password - TechGear'
-    const resetLink = `${envConfig.CLIENT_URL}/reset-password?token=${token}`
+    const resetLink = `http://localhost:${envConfig.PORT || 3000}/auth/reset-password?token=${token}`
     const html = this.getTemplate(
       'Reset Your Password',
       `You requested to reset your password. If you didn't make this request, you can safely ignore this email.<br/>Click the button below to reset your password.`,

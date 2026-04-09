@@ -1,6 +1,7 @@
 export const USERS_MESSAGES = {
   /* --- VALIDATION (KIỂM TRA DỮ LIỆU ĐẦU VÀO) --- */
   VALIDATION_ERROR: 'Validation error',
+  ACCOUNT_NOT_VERIFIED: 'Account not verified',
 
   // Name Validation
   NAME_IS_REQUIRED: 'Name is required',
@@ -155,5 +156,8 @@ export const USERS_MESSAGES = {
   GET_ALL_CATEGORIES_SUCCESS: 'Get all categories successfully',
   UPDATE_CATEGORY_SUCCESS: 'Update category successfully',
   DELETE_CATEGORY_SUCCESS: 'Delete category successfully',
-  CATEGORY_IS_USED_BY_PRODUCT: 'Cannot delete category that is currently used by a product'
+  CATEGORY_IS_USED_BY_PRODUCT: 'Cannot delete category that is currently used by a product',
+
+  /* --- MEDIA --- */
+  UPLOAD_IMAGE_FAIL: 'Upload image fail'
 } as const
