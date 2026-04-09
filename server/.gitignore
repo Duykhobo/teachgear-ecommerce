@@ -147,5 +147,13 @@ node_modules/
 dist/
 build/
 .vscode/
+uploads/
+test_out*.txt
+*.txt
+*.md
+*.log
+*.test.ts
+*.setup.ts
+setup.ts
 
 # End of https://www.toptal.com/developers/gitignore/api/node

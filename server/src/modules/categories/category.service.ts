@@ -7,6 +7,13 @@ import { USERS_MESSAGES } from '~/common/constants/messages'
 
 class CategoryService {
   async createCategory(payload: CreateCategoryReqBody) {
+    const isSlugExist = await databaseServices.categories.findOne({ slug: payload.slug })
+    if (isSlugExist) {
+      throw new ErrorWithStatus({
+        message: 'Category slug already exists',
+        status: HTTP_STATUS.BAD_REQUEST
+      })
+    }
     const category_id = new ObjectId()
     const newCategory = new Category({
       _id: category_id,

@@ -4,17 +4,9 @@ import HTTP_STATUS from '~/common/constants/httpStatus'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import { validate } from '~/common/utils/validation'
-import { TokenPayload } from '~/modules/auth/auth.schema'
+import { TokenPayload } from '~/modules/auth/types/auth.types'
 
-import {
-  AddToCartSchema,
-  ChangePasswordSchema,
-  UpdateMeSchema,
-  UpdateCartReqBodySchema
-} from '~/modules/users/users.schema'
-
-export const addToCartValidator = validate(AddToCartSchema)
-export const updateCartValidator = validate(UpdateCartReqBodySchema)
+import { ChangePasswordSchema, UpdateMeSchema } from './schemas/user.validation'
 export const updateMeValidator = validate(UpdateMeSchema)
 export const changePasswordValidator = validate(ChangePasswordSchema)
 

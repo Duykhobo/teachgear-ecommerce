@@ -23,11 +23,11 @@ export const handleUploadImageUser = async (req: Request) => {
     maxFileSize: 2 * 1024 * 1024, //2MB
     maxTotalFileSize: 2 * 1024 * 1024,
     //xài option filter để kiểm tra file có phải là image không
-    filter: function ({ name, originalFilename, mimetype }) {
+    filter: function ({ name, mimetype }) {
       //name: name|key truyền vào của <input name = bla bla>
       //originalFilename: tên file gốc
       //mimetype: kiểu file vd: image/png
-      console.log(name, originalFilename, mimetype) //log để xem, nhớ comment
+      console.log(name, mimetype) //log để xem, nhớ comment
 
       const valid = name === 'image' && Boolean(mimetype?.includes('image/'))
       //mimetype? nếu là string thì check, k thì thôi
@@ -36,13 +36,12 @@ export const handleUploadImageUser = async (req: Request) => {
       //nếu sai valid thì dùng form.emit để gữi lỗi
       if (!valid) {
         form.emit(
-          'error' as any,
+          'error' as unknown as 'error',
           new ErrorWithStatus({
             message: 'File type is not valid',
             status: HTTP_STATUS.UNSUPPORTED_MEDIA_TYPE
-          }) as any
+          }) as unknown as Error
         )
-        //as any vì bug này formidable chưa fix, khi nào hết thì bỏ as any
       }
       //nếu đúng thì return valid
       return valid
@@ -51,7 +50,7 @@ export const handleUploadImageUser = async (req: Request) => {
   //form.parse về thành promise
   //files là object có dạng giống hình test code cuối cùng
   return new Promise<File[]>((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
+    form.parse(req, (err, _fields, files) => {
       if (err) {
         return reject(
           new ErrorWithStatus({
@@ -152,25 +151,24 @@ export const handleUploadVideo = async (req: Request) => {
     maxFileSize: 1920 * 1080 * 60, //1920x1080 60fps 10s
     maxTotalFileSize: 1920 * 1080 * 60,
     //xài option filter để kiểm tra file có phải là video không
-    filter: function ({ name, originalFilename, mimetype }) {
+    filter: function ({ name, mimetype }) {
       const valid = name === 'video' && Boolean(mimetype?.includes('video/'))
       //nếu sai valid thì dùng form.emit để gữi lỗi
       if (!valid) {
         form.emit(
-          'error' as any,
+          'error' as unknown as 'error',
           new ErrorWithStatus({
             message: 'File type is not valid',
             status: HTTP_STATUS.BAD_REQUEST
-          }) as any
+          }) as unknown as Error
         )
-        //as any vì bug này formidable chưa fix, khi nào hết thì bỏ as any
       }
       return valid
     }
   })
 
   return new Promise<File[]>((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
+    form.parse(req, (err, _fields, files) => {
       if (err) {
         return reject(
           new ErrorWithStatus({

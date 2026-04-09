@@ -21,7 +21,9 @@ if (!envFilename) {
   process.exit(1)
 }
 
-console.log(`✅ Đang sử dụng file: ${envFilename} (NODE_ENV=${env})`)
+if (env !== 'test') {
+  console.log(`Đang sử dụng file: ${envFilename} (NODE_ENV=${env})`)
+}
 
 config({
   path: envFilename
@@ -33,6 +35,9 @@ export const configSchema = z.object({
   PORT: z.coerce.number().default(3000),
   HOST: z.string(),
 
+  REDIS_HOST: z.string(),
+  REDIS_PORT: z.coerce.number(),
+
   MONGODB_URI: z.string(),
   DB_USERNAME: z.string(),
   DB_NAME: z.string(),
@@ -41,6 +46,7 @@ export const configSchema = z.object({
   DB_PRODUCTS_COLLECTION: z.string(),
   DB_ORDERS_COLLECTION: z.string(),
   DB_CATEGORIES_COLLECTION: z.string(),
+  DB_CARTS_COLLECTION: z.string(),
 
   PASSWORD_SECRET: z.string(),
 
@@ -69,16 +75,27 @@ export const configSchema = z.object({
   // Cloudinary
   CLOUDINARY_CLOUD_NAME: z.string(),
   CLOUDINARY_API_KEY: z.string(),
-  CLOUDINARY_API_SECRET: z.string()
+  CLOUDINARY_API_SECRET: z.string(),
+
+  // Stripe
+  STRIPE_SECRET_KEY: z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string(),
+  STRIPE_SUCCESS_URL: z.string(),
+  STRIPE_CANCEL_URL: z.string()
 })
 
 // Validate process.env
 const configServer = configSchema.safeParse(process.env)
 
 if (!configServer.success) {
-  console.error('❌ Các biến môi trường khai báo trong file .env không hợp lệ:')
+  console.error('Invalid environment variables:')
   console.error(configServer.error.issues)
-  throw new Error('Các biến môi trường khai báo trong file .env không hợp lệ')
+  throw new Error('Invalid environment variables')
+}
+
+// Tách riêng DB Test nếu môi trường là test
+if (env === 'test') {
+  configServer.data.DB_NAME = configServer.data.DB_NAME + '_' + (process.env.JEST_WORKER_ID || 'test')
 }
 
 // Export ra object đã validate xong

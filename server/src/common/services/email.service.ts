@@ -15,26 +15,25 @@ class EmailService {
       }
     })
   }
-
   async sendVerifyEmail(to: string, token: string) {
-    const subject = 'Welcome to TechGear! Verify your email'
+    const subject = 'Chào mừng đến với TechGear! Xác thực email của bạn'
     const verificationLink = `http://localhost:${envConfig.PORT || 3000}/auth/verify-email?token=${token}`
     const html = this.getTemplate(
-      'Verify Your Email Address',
-      `Welcome to TechGear! We're excited to have you on board.<br/>Please verify your email address to get access to all our features.`,
-      'Verify Email',
+      'Xác thực địa chỉ email',
+      `Chào mừng bạn đến với TechGear! Chúng tôi rất vui khi có bạn tham gia.<br/>Vui lòng xác thực địa chỉ email để truy cập tất cả các tính năng của chúng tôi.`,
+      'Xác thực Email',
       verificationLink
     )
     await this.sendEmail(to, subject, html)
   }
 
   async sendForgotPasswordEmail(to: string, token: string) {
-    const subject = 'Reset Your Password - TechGear'
-    const resetLink = `http://localhost:${envConfig.PORT || 3000}/auth/reset-password?token=${token}`
+    const subject = 'Đặt lại mật khẩu - TechGear'
+    const resetLink = `${envConfig.CLIENT_URL}/reset-password?token=${token}`
     const html = this.getTemplate(
-      'Reset Your Password',
-      `You requested to reset your password. If you didn't make this request, you can safely ignore this email.<br/>Click the button below to reset your password.`,
-      'Reset Password',
+      'Đặt lại mật khẩu',
+      `Bạn đã yêu cầu đặt lại mật khẩu. Nếu bạn không thực hiện yêu cầu này, bạn có thể bỏ qua email này.<br/>Nhấp vào nút bên dưới để đặt lại mật khẩu.`,
+      'Đặt lại mật khẩu',
       resetLink
     )
     await this.sendEmail(to, subject, html)
@@ -94,9 +93,39 @@ class EmailService {
         html
       })
       console.log('Message sent: %s', info.messageId)
+      if (envConfig.SMTP_HOST === 'smtp.ethereal.email') {
+        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
+      }
+      return info
     } catch (error) {
       console.error('Error sending email:', error)
+      throw error
     }
+  }
+
+  async sendOrderConfirmationEmail(to: string, orderId: string, totalAmount: number, currency = 'usd') {
+    const subject = 'Cảm ơn bạn đã mua sắm tại TechGear!'
+    const orderLink = `${envConfig.CLIENT_URL}/orders/${orderId}` // Link Frontend xem đơn hàng
+
+    const isVND = currency.toLowerCase() === 'vnd'
+    const locale = isVND ? 'vi-VN' : 'en-US'
+    const _currency = currency.toUpperCase()
+
+    // Format tiền tệ động (Dynamic Formatting)
+    const formattedAmount = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: _currency
+    }).format(totalAmount)
+
+    const html = this.getTemplate(
+      'Thanh toán thành công!',
+      `Cảm ơn bạn đã mua sắm tại TechGear.<br/><br/>
+       Đơn hàng <b>#${orderId}</b> với tổng giá trị <b style="color:#e74c3c;font-size:18px;">${formattedAmount}</b> đã được thanh toán thành công và đang được chuẩn bị.`,
+      'Xem Chi Tiết Đơn Hàng',
+      orderLink
+    )
+
+    await this.sendEmail(to, subject, html)
   }
 }
 
