@@ -4,7 +4,7 @@ import RefreshToken from '~/modules/auth/models/refresh-token.model'
 import Product from '~/modules/products/models/product.model'
 import { envConfig } from '~/common/configs/configs'
 import Order from '~/modules/orders/models/orders.model'
-import Category from '~/modules/categories/category.schema'
+import Category from '~/modules/categories/models/category.model'
 import Cart from '~/modules/cart/models/cart.model'
 
 const uri = envConfig.MONGODB_URI

@@ -1,7 +1,7 @@
 import { File } from 'formidable'
 import { Request } from 'express'
 import { handleUploadVideo, getNameFromFullName } from '~/common/utils/file'
-import { Media } from './type'
+import { Media } from './types/medias.type'
 import { MediaType } from '~/common/constants/enums'
 import fs from 'fs'
 import cloudinary from 'cloudinary'

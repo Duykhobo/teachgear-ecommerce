@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb'
 import databaseServices from '~/common/services/database.service'
-import Category, { CreateCategoryReqBody, UpdateCategoryReqBody } from './category.schema'
+import Category from './models/category.model'
+import { CreateCategoryReqBody, UpdateCategoryReqBody } from './schemas/category.schema'
 import HTTP_STATUS from '~/common/constants/httpStatus'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import { USERS_MESSAGES } from '~/common/constants/messages'

@@ -9,7 +9,7 @@ import { wrapAsync } from '~/common/utils/handler'
 import { adminMiddleware } from '~/common/middlewares/common.middleware'
 import { accessTokenValidator } from '~/modules/auth/auth.middleware'
 import { validate } from '~/common/utils/validation'
-import { CategoryParamsSchema, CreateCategorySchema, UpdateCategoryBodySchema } from './category.schema'
+import { CategoryParamsSchema, CreateCategorySchema, UpdateCategoryBodySchema } from './schemas/category.schema'
 
 const categoryRoutes = Router()
 
