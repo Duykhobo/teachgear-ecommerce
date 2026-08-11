@@ -26,9 +26,6 @@ export const handleUploadImageUser = async (req: Request) => {
     filter: function ({ name, mimetype }) {
       //name: name|key truyền vào của <input name = bla bla>
       //originalFilename: tên file gốc
-      //mimetype: kiểu file vd: image/png
-      console.log(name, mimetype) //log để xem, nhớ comment
-
       const valid = name === 'image' && Boolean(mimetype?.includes('image/'))
       //mimetype? nếu là string thì check, k thì thôi
       //ép Boolean luôn, nếu k thì valid sẽ là boolean | undefined
@@ -79,12 +76,9 @@ export const handleUploadImageProducts = async (req: Request) => {
     maxFileSize: 5 * 1024 * 1024, //5MB
     maxTotalFileSize: 20 * 1024 * 1024, //20MB
     //xài option filter để kiểm tra file có phải là image không
-    filter: function ({ name, originalFilename, mimetype }) {
+    filter: function ({ name, mimetype }) {
       //name: name|key truyền vào của <input name = bla bla>
       //originalFilename: tên file gốc
-      //mimetype: kiểu file vd: image/png
-      console.log(name, originalFilename, mimetype) //log để xem, nhớ comment
-
       const valid = name === 'image' && Boolean(mimetype?.includes('image/'))
       //mimetype? nếu là string thì check, k thì thôi
       //ép Boolean luôn, nếu k thì valid sẽ là boolean | undefined
