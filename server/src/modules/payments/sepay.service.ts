@@ -135,6 +135,38 @@ class SePayService {
           return { success: true }
         }
 
+        const paidAmount = Number(
+          payload.transaction?.transaction_amount ||
+            payload.order?.order_amount ||
+            (payload as any).transferAmount ||
+            0
+        )
+
+        // Cảnh báo nếu khách hàng chuyển THIẾU TIỀN đơn hàng
+        if (paidAmount > 0 && paidAmount < order.total_amount) {
+          logger.warn(`[SEPAY IPN] Order ${order._id} underpaid. Expected ${order.total_amount}, received ${paidAmount}`)
+
+          const botToken = (envConfig as any).TELEGRAM_BOT_TOKEN || '8874098441:AAEQET7toAgwEZwRP70lLwElqrawF7glwQg'
+          const chatId = (envConfig as any).TELEGRAM_CHAT_ID || '-1004294239186'
+
+          if (botToken && chatId) {
+            try {
+              await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  chat_id: chatId,
+                  parse_mode: 'HTML',
+                  text: `⚠️ <b>TECHGEAR PAYMENT ALERT - KHÁCH CHUYỂN THIẾU TIỀN!</b>\n\n📦 <b>Mã đơn hàng:</b> <code>${order._id}</code>\n💵 <b>Giá trị đơn:</b> <code>${Number(order.total_amount).toLocaleString('vi-VN')} đ</code>\n🔻 <b>Số tiền chuyển:</b> <code>${paidAmount.toLocaleString('vi-VN')} đ</code> (Thiếu ${(order.total_amount - paidAmount).toLocaleString('vi-VN')} đ)\n📝 <b>Mã hóa đơn:</b> <code>${invoiceNumber}</code>\n\n🚨 <i>Đơn chưa được tự động duyệt. Vui lòng kiểm tra!</i>`
+                })
+              })
+            } catch (err) {
+              logger.error('[SEPAY IPN] Failed to send Telegram alert for underpaid order', err)
+            }
+          }
+          return { success: false, message: 'Số tiền thanh toán chưa đủ' }
+        }
+
         // 2. Cập nhật trạng thái đơn hàng -> Paid & Processing
         await databaseServices.orders.updateOne(
           { _id: order._id },
