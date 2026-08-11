@@ -25,11 +25,10 @@ services:
   ngrok:
     image: ngrok/ngrok:latest
     container_name: techgear-ngrok
-    # ĐÃ SỬA Ở ĐÂY: Viết thành một chuỗi liền và thêm http://
-    command: 'http http://app:3000'
+    command: 'http http://host.docker.internal:3000'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     environment:
       - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
-    depends_on:
-      - app # Bắt buộc Backend Server phải chạy trước khi mở cổng ngrok
     ports:
       - '4040:4040'
