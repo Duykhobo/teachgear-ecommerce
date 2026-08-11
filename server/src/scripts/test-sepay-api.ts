@@ -2,7 +2,6 @@ import databaseServices from '~/common/services/database.service'
 import sePayService from '~/modules/payments/sepay.service'
 import { ObjectId } from 'mongodb'
 import { OrderStatus, PaymentStatus } from '~/common/constants/enums'
-import logger from '~/common/utils/logger'
 
 async function runTest() {
   console.log('\n==================================================')
