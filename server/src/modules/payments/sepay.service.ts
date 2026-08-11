@@ -29,22 +29,35 @@ export interface SePayIPNPayload {
 
 class SePayService {
   /**
-   * Khởi tạo Form Fields để Submit sang SePay Checkout (dùng official SDK)
+   * Khởi tạo Form Fields để Submit sang SePay Checkout.
+   * Hỗ trợ ĐỒNG THỜI cả môi trường Sandbox (Test) và Production (Live)
    */
   public initCheckoutForm({
     order_id,
     invoice_number,
     amount,
-    description
+    description,
+    is_sandbox
   }: {
     order_id: string
     invoice_number: string
     amount: number
     description: string
+    is_sandbox?: boolean
   }) {
-    const env = (envConfig.SEPAY_ENV === 'production' ? 'production' : 'sandbox') as 'sandbox' | 'production'
-    const merchant_id = envConfig.SEPAY_MERCHANT_ID || 'DEMO_MERCHANT'
-    const secret_key = envConfig.SEPAY_SECRET_KEY || 'DEMO_SECRET'
+    // Tự động xác định Sandbox hay Live dựa trên tham số hoặc cấu hình mặc định
+    const useSandbox = is_sandbox !== undefined ? is_sandbox : envConfig.SEPAY_ENV === 'sandbox'
+    const env: 'sandbox' | 'production' = useSandbox ? 'sandbox' : 'production'
+
+    // Lấy cặp key tương ứng cho từng môi trường
+    const merchant_id = useSandbox
+      ? envConfig.SEPAY_SANDBOX_MERCHANT_ID || envConfig.SEPAY_MERCHANT_ID || 'SP-TEST-NT942323'
+      : envConfig.SEPAY_LIVE_MERCHANT_ID || envConfig.SEPAY_MERCHANT_ID || 'SP-LIVE-NT588865'
+
+    const secret_key = useSandbox
+      ? envConfig.SEPAY_SANDBOX_SECRET_KEY || envConfig.SEPAY_SECRET_KEY || 'spsk_test_hZXd1g3X82pifpXQtdY8vhxYkES54gJ4'
+      : envConfig.SEPAY_LIVE_SECRET_KEY || envConfig.SEPAY_SECRET_KEY || 'spsk_live_bg8L3Co4xRrcj5V7TPqC94YnY5kFdfWp'
+
     const baseUrl = envConfig.CLIENT_URL || 'http://localhost:3000'
 
     const client = new SePayPgClient({
@@ -68,12 +81,13 @@ class SePayService {
 
     return {
       checkout_url,
-      fields: checkout_fields
+      fields: checkout_fields,
+      env
     }
   }
 
   /**
-   * Xử lý Webhook / IPN từ SePay khi có thanh toán chuyển khoản thành công
+   * Xử lý Webhook / IPN từ SePay khi có thanh toán chuyển khoản thành công (hỗ trợ cả Sandbox lẫn Production)
    */
   public async handleIPN(payload: SePayIPNPayload) {
     logger.info(`[SEPAY IPN] Received notification: ${JSON.stringify(payload)}`)
@@ -83,7 +97,7 @@ class SePayService {
 
       // 1. Tìm đơn hàng theo invoice_number hoặc id
       let order = await databaseServices.orders.findOne({
-        'delivery.phone_number': invoiceNumber // hoặc kiểm tra trong database theo _id
+        'delivery.phone_number': invoiceNumber
       })
 
       if (!order && ObjectId.isValid(invoiceNumber.replace('INV-', ''))) {

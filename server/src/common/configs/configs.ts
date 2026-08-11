@@ -91,10 +91,16 @@ export const configSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_REDIRECT_URI: z.string().optional(),
 
-  // SePay Payment Gateway
-  SEPAY_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
+  // SePay Payment Gateway (Dual Sandbox & Production Live support)
+  SEPAY_ENV: z.enum(['sandbox', 'production']).default('production'),
   SEPAY_MERCHANT_ID: z.string().optional(),
-  SEPAY_SECRET_KEY: z.string().optional()
+  SEPAY_SECRET_KEY: z.string().optional(),
+
+  // Dual Environment Keys
+  SEPAY_SANDBOX_MERCHANT_ID: z.string().default('SP-TEST-NT942323'),
+  SEPAY_SANDBOX_SECRET_KEY: z.string().default('spsk_test_hZXd1g3X82pifpXQtdY8vhxYkES54gJ4'),
+  SEPAY_LIVE_MERCHANT_ID: z.string().default('SP-LIVE-NT588865'),
+  SEPAY_LIVE_SECRET_KEY: z.string().default('spsk_live_bg8L3Co4xRrcj5V7TPqC94YnY5kFdfWp')
 })
 
 // Validate process.env
