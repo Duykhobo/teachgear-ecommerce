@@ -36,8 +36,10 @@ export const configSchema = z.object({
   PORT: z.coerce.number().default(3000),
   HOST: z.string(),
 
-  REDIS_HOST: z.string(),
-  REDIS_PORT: z.coerce.number(),
+  REDIS_HOST: z.string().default('127.0.0.1'),
+  REDIS_PORT: z.coerce.number().default(6379),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_URL: z.string().optional(),
 
   MONGODB_URI: z.string(),
   DB_USERNAME: z.string(),
