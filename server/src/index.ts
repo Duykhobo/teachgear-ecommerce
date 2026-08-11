@@ -121,9 +121,13 @@ app.get('/health', async (_req, res) => {
     await databaseServices.db.command({ ping: 1 })
     healthStatus.services.mongodb = 'healthy'
 
-    // Check Redis
-    await redisConnection.ping()
-    healthStatus.services.redis = 'healthy'
+    // Check Redis (Graceful fallback)
+    try {
+      await redisConnection.ping()
+      healthStatus.services.redis = 'healthy'
+    } catch {
+      healthStatus.services.redis = 'degraded'
+    }
 
     res.status(200).json(healthStatus)
   } catch {
