@@ -14,6 +14,7 @@ import productsRoutes from './modules/products/products.route'
 import categoryRoutes from './modules/categories/category.route'
 import mediaRoute from './modules/medias/medias.route'
 import cartRoutes from './modules/cart/cart.route'
+import paymentRoutes from './modules/payments/payments.route'
 import { initFolder } from './common/utils/file'
 import { emailWorker } from '~/common/queues/email.queue'
 import { redisConnection } from './common/configs/redis.config'
@@ -95,6 +96,7 @@ app.use('/orders', orderRoutes)
 app.use('/products', productsRoutes)
 app.use('/categories', categoryRoutes)
 app.use('/medias', mediaRoute)
+app.use('/payments', paymentRoutes)
 
 // Swagger UI
 app.get('/swagger.json', (_req, res) => {
