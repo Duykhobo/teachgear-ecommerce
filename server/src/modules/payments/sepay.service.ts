@@ -172,6 +172,40 @@ class SePayService {
 
     return { success: true }
   }
+  /**
+   * Tạo URL ảnh VietQR chuẩn SePay / VietQR Quick Link
+   */
+  public generateVietQRUrl({
+    bank = 'Sacombank',
+    acc = '070148520060',
+    template = 'compact2',
+    amount,
+    des,
+    holder = 'VO QUOC G',
+    store = 'TechGear Store',
+    fullacc = true
+  }: {
+    bank?: string
+    acc?: string
+    template?: 'compact' | 'compact2' | 'qr_only' | 'print'
+    amount: number
+    des: string
+    holder?: string
+    store?: string
+    fullacc?: boolean
+  }) {
+    const params = new URLSearchParams({
+      bank,
+      acc,
+      template,
+      amount: String(amount),
+      des,
+      holder,
+      store,
+      fullacc: String(fullacc)
+    })
+    return `https://qr.sepay.vn/img?${params.toString()}`
+  }
 }
 
 const sePayService = new SePayService()
