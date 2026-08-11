@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import { SePayPgClient } from 'sepay-pg-node'
 import { ObjectId } from 'mongodb'
 import { envConfig } from '~/common/configs/configs'
 import databaseServices from '~/common/services/database.service'
@@ -28,44 +28,8 @@ export interface SePayIPNPayload {
 }
 
 class SePayService {
-  private get checkoutUrl(): string {
-    return envConfig.SEPAY_ENV === 'production'
-      ? 'https://pay.sepay.vn/v1/checkout/init'
-      : 'https://pay-sandbox.sepay.vn/v1/checkout/init'
-  }
-
   /**
-   * Tạo HMAC-SHA256 Signature chuẩn SePay
-   */
-  public generateSignature(fields: Record<string, string>): string {
-    const secretKey = envConfig.SEPAY_SECRET_KEY || ''
-    const signedFieldKeys = [
-      'merchant',
-      'operation',
-      'payment_method',
-      'order_amount',
-      'currency',
-      'order_invoice_number',
-      'order_description',
-      'customer_id',
-      'success_url',
-      'error_url',
-      'cancel_url'
-    ]
-
-    const signedParts: string[] = []
-    for (const key of signedFieldKeys) {
-      if (fields[key] !== undefined && fields[key] !== null) {
-        signedParts.push(`${key}=${fields[key]}`)
-      }
-    }
-
-    const signedString = signedParts.join(',')
-    return crypto.createHmac('sha256', secretKey).update(signedString).digest('base64')
-  }
-
-  /**
-   * Khởi tạo Form Fields để Submit sang SePay Checkout
+   * Khởi tạo Form Fields để Submit sang SePay Checkout (dùng official SDK)
    */
   public initCheckoutForm({
     order_id,
@@ -78,30 +42,33 @@ class SePayService {
     amount: number
     description: string
   }) {
-    const merchantId = envConfig.SEPAY_MERCHANT_ID || 'DEMO_MERCHANT'
+    const env = (envConfig.SEPAY_ENV === 'production' ? 'production' : 'sandbox') as 'sandbox' | 'production'
+    const merchant_id = envConfig.SEPAY_MERCHANT_ID || 'DEMO_MERCHANT'
+    const secret_key = envConfig.SEPAY_SECRET_KEY || 'DEMO_SECRET'
     const baseUrl = envConfig.CLIENT_URL || 'http://localhost:3000'
 
-    const fields: Record<string, string> = {
-      merchant: merchantId,
+    const client = new SePayPgClient({
+      env,
+      merchant_id,
+      secret_key
+    })
+
+    const checkout_url = client.checkout.initCheckoutUrl()
+    const checkout_fields = client.checkout.initOneTimePaymentFields({
       operation: 'PURCHASE',
       payment_method: 'BANK_TRANSFER',
-      order_amount: Math.round(amount).toString(),
-      currency: 'VND',
       order_invoice_number: invoice_number || `INV-${order_id}`,
+      order_amount: Math.round(amount),
+      currency: 'VND',
       order_description: description || `Thanh toan don hang ${order_id}`,
       success_url: `${baseUrl}/order/${order_id}?payment=success`,
       error_url: `${baseUrl}/order/${order_id}?payment=error`,
       cancel_url: `${baseUrl}/order/${order_id}?payment=cancel`
-    }
-
-    const signature = this.generateSignature(fields)
+    })
 
     return {
-      checkout_url: this.checkoutUrl,
-      fields: {
-        ...fields,
-        signature
-      }
+      checkout_url,
+      fields: checkout_fields
     }
   }
 
