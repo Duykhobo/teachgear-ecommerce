@@ -11,7 +11,7 @@ import {
   EmailVerifyBodySchema
 } from '../schemas/auth.validation'
 import z from 'zod'
-import { TokenType } from '~/common/constants/enums'
+import { TokenType, USER_ROLE } from '~/common/constants/enums'
 
 // --- Types(For Service) ---
 export type RegisterReqBody = z.infer<typeof RegisterBodySchema>
@@ -21,6 +21,13 @@ export type RefreshTokenReqBody = z.infer<typeof RefreshTokenBodySchema>
 export type ForgotPasswordReqBody = z.infer<typeof ForgotPasswordBodySchema>
 export type VerifyForgotPasswordTokenReqBody = z.infer<typeof VerifyForgotPasswordTokenBodySchema>
 export type EmailVerifyReqBody = z.infer<typeof EmailVerifyBodySchema>
+export type RefreshTokenPayload = {
+  user_id: string
+  token_type: TokenType
+  role: USER_ROLE
+  exp: number
+  iat: number
+}
 export type ResetPasswordReqBody = z.infer<typeof ResetPasswordBodySchema>
 
 // --- Models ---
@@ -28,7 +35,7 @@ export type ResetPasswordReqBody = z.infer<typeof ResetPasswordBodySchema>
 export interface TokenPayload extends JwtPayload {
   user_id: string
   token_type: TokenType
-  role: number
+  role: USER_ROLE
 }
 
 export interface RefreshTokenType {

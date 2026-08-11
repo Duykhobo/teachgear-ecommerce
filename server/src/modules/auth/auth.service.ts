@@ -14,7 +14,7 @@ import { envConfig } from '~/common/configs/configs'
 import { enqueueEmailJob } from '~/common/queues/email.queue'
 
 class AuthService {
-  private signAccessToken(user_id: string, role: number) {
+  private signAccessToken(user_id: string, role: USER_ROLE) {
     return signToken({
       privateKey: envConfig.JWT_SECRET_ACCESS_TOKEN as string,
       payload: { user_id, token_type: TokenType.AccessToken, role },
@@ -23,7 +23,7 @@ class AuthService {
       }
     })
   }
-  private signRefreshToken(user_id: string, role: number) {
+  private signRefreshToken(user_id: string, role: USER_ROLE) {
     return signToken({
       privateKey: envConfig.JWT_SECRET_REFRESH_TOKEN as string,
       payload: { user_id, token_type: TokenType.RefreshToken, role },
@@ -33,7 +33,7 @@ class AuthService {
     })
   }
 
-  private signAccessAndRefreshToken(user_id: string, role: number) {
+  private signAccessAndRefreshToken(user_id: string, role: USER_ROLE) {
     return Promise.all([this.signAccessToken(user_id, role), this.signRefreshToken(user_id, role)])
   }
 
@@ -155,7 +155,7 @@ class AuthService {
       refresh_token
     }
   }
-  async refreshToken({ user_id, refresh_token, role }: { user_id: string; refresh_token: string; role: number }) {
+  async refreshToken({ user_id, refresh_token, role }: { user_id: string; refresh_token: string; role: USER_ROLE }) {
     // 2. Check DB
     const refreshToken = await databaseServices.refreshTokens.findOne({ token: refresh_token })
     if (!refreshToken) {

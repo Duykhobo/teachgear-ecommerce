@@ -2,46 +2,83 @@
  * Trạng thái xác thực tài khoản người dùng
  */
 export enum UserVerifyStatus {
-  Unverified = 0, // Chưa xác thực email
-  Verified = 1, // Đã xác thực email
-  Banned = 2 // Tài khoản bị khóa
+  Unverified = 'Unverified', // Chưa xác thực email
+  Verified = 'Verified', // Đã xác thực email
+  Banned = 'Banned' // Tài khoản bị khóa
 }
 
 /**
  * Vai trò người dùng trong hệ thống
  */
 export enum USER_ROLE {
-  Admin = 0, // Quản trị viên
-  Staff = 1, // Nhân viên
-  User = 2 // Người dùng thông thường
+  Admin = 'Admin', // Quản trị viên
+  Staff = 'Staff', // Nhân viên
+  User = 'User' // Người dùng thông thường
 }
 
 /**
- * Loại token được sử dụng
+ * Loại token được sử dụng (Giữ numeric vì đây là logic internal cực sâu)
  */
 export enum TokenType {
-  AccessToken = 0, // Token truy cập
-  RefreshToken = 1, // Token làm mới
-  ForgotPasswordToken = 2, // Token quên mật khẩu
-  EmailVerificationToken = 3 // Token xác thực email
+  AccessToken = 0,
+  RefreshToken = 1,
+  ForgotPasswordToken = 2,
+  EmailVerificationToken = 3
 }
 
 /**
  * Loại media được upload
  */
 export enum MediaType {
-  Image = 0, // Hình ảnh
-  Video = 1 // Video
+  Image = 'Image',
+  Video = 'Video'
 }
 
 /**
  * Trạng thái đơn hàng
  */
 export enum OrderStatus {
-  Pending = 0, // Chờ xử lý
-  Processing = 1, // Đang xử lý
-  Shipped = 2, // Đã giao cho đơn vị vận chuyển
-  Delivered = 3, // Đã giao thành công
-  Cancelled = 4, // Đã hủy
-  Completed = 5 // Hoàn thành
+  Pending = 'Pending', // Chờ xử lý
+  Processing = 'Processing', // Đang xử lý
+  Shipped = 'Shipped', // Đã giao cho đơn vị vận chuyển
+  Delivered = 'Delivered', // Đã giao thành công
+  Cancelled = 'Cancelled', // Đã hủy
+  Completed = 'Completed' // Hoàn thành
+}
+
+/**
+ * Phương thức giao hàng
+ */
+export enum DeliveryMethod {
+  Standard = 'Standard', // Giao hàng tiêu chuẩn
+  Express = 'Express' // Giao hàng hỏa tốc
+}
+
+/**
+ * Trạng thái giao hàng chi tiết
+ */
+export enum DeliveryStatus {
+  Pending = 'Pending',
+  Processing = 'Processing',
+  Shipped = 'Shipped',
+  Delivered = 'Delivered',
+  Cancelled = 'Cancelled'
+}
+
+/**
+ * Phương thức thanh toán
+ */
+export enum PaymentMethod {
+  Stripe = 'Stripe',
+  COD = 'COD'
+}
+
+/**
+ * Trạng thái thanh toán
+ */
+export enum PaymentStatus {
+  Pending = 'Pending',
+  Paid = 'Paid',
+  Refunded = 'Refunded',
+  Failed = 'Failed'
 }
