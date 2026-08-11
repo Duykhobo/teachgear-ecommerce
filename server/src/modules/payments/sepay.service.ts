@@ -123,7 +123,8 @@ class SePayService {
         'delivery.phone_number': invoiceNumber
       })
 
-      const cleanId = invoiceNumber.replace(/^INV-?/i, '')
+      const match = invoiceNumber.match(/(?:INV|PAY)?([a-fA-F0-9]{24})/i)
+      const cleanId = match ? match[1] : invoiceNumber.replace(/^(?:INV|PAY)-?/i, '')
       if (!order && ObjectId.isValid(cleanId)) {
         order = await databaseServices.orders.findOne({ _id: new ObjectId(cleanId) })
       }
