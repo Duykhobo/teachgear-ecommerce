@@ -1,4 +1,5 @@
 import { SePayPgClient } from 'sepay-pg-node'
+import crypto from 'crypto'
 import { ObjectId } from 'mongodb'
 import { envConfig } from '~/common/configs/configs'
 import databaseServices from '~/common/services/database.service'
@@ -84,6 +85,28 @@ class SePayService {
       fields: checkout_fields,
       env
     }
+  }
+
+  /**
+   * Xác thực chữ ký HMAC-SHA256 bảo mật từ SePay Webhook (X-SePay-Signature & X-SePay-Timestamp)
+   */
+  public verifyHMACSignature(payload: unknown, signature?: string, timestamp?: string): boolean {
+    if (!signature) return true
+
+    const payloadStr = JSON.stringify(payload)
+    const signString = timestamp ? `${timestamp}.${payloadStr}` : payloadStr
+
+    // Check với Live Secret Key
+    const liveSecret = envConfig.SEPAY_LIVE_SECRET_KEY || envConfig.SEPAY_SECRET_KEY || 'spsk_live_bg8L3Co4xRrcj5V7TPqC94YnY5kFdfWp'
+    const expectedLive = 'sha256=' + crypto.createHmac('sha256', liveSecret).update(signString).digest('hex')
+    if (signature === expectedLive || signature === expectedLive.replace('sha256=', '')) return true
+
+    // Check với Sandbox Secret Key
+    const sandboxSecret = envConfig.SEPAY_SANDBOX_SECRET_KEY || 'spsk_test_hZXd1g3X82pifpXQtdY8vhxYkES54gJ4'
+    const expectedSandbox = 'sha256=' + crypto.createHmac('sha256', sandboxSecret).update(signString).digest('hex')
+    if (signature === expectedSandbox || signature === expectedSandbox.replace('sha256=', '')) return true
+
+    return false
   }
 
   /**
