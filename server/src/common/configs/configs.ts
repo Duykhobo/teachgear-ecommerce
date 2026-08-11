@@ -15,19 +15,20 @@ const envFiles = [
 
 const envFilename = envFiles.find((file) => fs.existsSync(path.resolve(file)))
 
-if (!envFilename) {
-  console.error('❌ Không tìm thấy file env nào trong danh sách:', envFiles.join(', '))
-  console.error('Vui lòng tạo ít nhất 1 file, tham khảo file .env.example')
-  process.exit(1)
+if (envFilename) {
+  if (env !== 'test') {
+    console.log(`Đang sử dụng file env: ${envFilename} (NODE_ENV=${env})`)
+  }
+  config({
+    path: envFilename
+  })
+} else {
+  if (env !== 'test') {
+    console.log(`Không thấy file .env vật lý, đang sử dụng hệ thống process.env (NODE_ENV=${env})`)
+  }
+  // Vẫn gọi config() mặc định nếu có
+  config()
 }
-
-if (env !== 'test') {
-  console.log(`Đang sử dụng file: ${envFilename} (NODE_ENV=${env})`)
-}
-
-config({
-  path: envFilename
-})
 
 // Định nghĩa Schema validation cho biến môi trường
 // Zod sẽ kiểm tra xem các biến này có tồn tại và đúng kiểu dữ liệu không
