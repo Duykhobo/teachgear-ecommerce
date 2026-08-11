@@ -1,5 +1,11 @@
 import { ObjectId } from 'mongodb'
-import { OrderStatus } from '~/common/constants/enums'
+import {
+  OrderStatus,
+  DeliveryMethod,
+  DeliveryStatus,
+  PaymentMethod,
+  PaymentStatus
+} from '~/common/constants/enums'
 
 export interface OrderItemType {
   product_id: ObjectId
@@ -10,14 +16,14 @@ export interface OrderItemType {
 }
 
 export interface OrderPaymentType {
-  payment_method: string
-  payment_status: string
+  payment_method: PaymentMethod
+  payment_status: PaymentStatus
   payment_id: string
 }
 
 export interface OrderDeliveryType {
-  delivery_method: string
-  delivery_status: string
+  delivery_method: DeliveryMethod
+  delivery_status: DeliveryStatus
   address: string
   phone_number: string
   receiver_name: string

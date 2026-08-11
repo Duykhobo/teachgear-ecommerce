@@ -18,7 +18,6 @@ import {
   handleStripeWebhookController
 } from '~/modules/orders/orders.controller'
 import { wrapAsync } from '~/common/utils/handler'
-import express from 'express'
 
 const orderRoutes = Router()
 
@@ -32,11 +31,7 @@ const orderRoutes = Router()
  *       200:
  *         description: Webhook received.
  */
-orderRoutes.post(
-  '/webhook',
-  express.raw({ type: 'application/json' }), // Giữ nguyên dạng raw buffer
-  wrapAsync(handleStripeWebhookController)
-)
+orderRoutes.post('/webhook', wrapAsync(handleStripeWebhookController))
 
 /**
  * @swagger
@@ -66,8 +61,8 @@ orderRoutes.post(
  *               shipping_address:
  *                 type: string
  *               payment_method:
- *                 type: integer
- *                 description: Payment enum (e.g., 0 = COD, 1 = Online)
+ *                 type: string
+ *                 description: PaymentMethod enum (e.g., Stripe, COD)
  *     responses:
  *       201:
  *         description: Order created successfully.
@@ -170,8 +165,8 @@ orderRoutes.get(
  *             required: [status]
  *             properties:
  *               status:
- *                 type: integer
- *                 description: OrderStatus enum value
+ *                 type: string
+ *                 description: OrderStatus enum value (e.g., Pending, Processing)
  *     responses:
  *       200:
  *         description: Order status updated successfully.
@@ -206,8 +201,8 @@ orderRoutes.patch(
  *       - in: query
  *         name: status
  *         schema:
- *           type: integer
- *           description: Filter by OrderStatus enum
+ *           type: string
+ *           description: Filter by OrderStatus enum (e.g., Pending, Processing)
  *       - in: query
  *         name: search
  *         schema:

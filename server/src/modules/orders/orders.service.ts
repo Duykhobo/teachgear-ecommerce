@@ -5,7 +5,7 @@ import { CreateOrderReqBody, GetOrdersAdminReqQuery } from './schemas/orders.sch
 import { ErrorWithStatus } from '~/common/models/Errors'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import HTTP_STATUS from '~/common/constants/httpStatus'
-import { OrderStatus } from '~/common/constants/enums'
+import { OrderStatus, DeliveryMethod, DeliveryStatus, PaymentMethod, PaymentStatus } from '~/common/constants/enums'
 import cartService from '../cart/cart.service'
 import { CartAggregateResult, CartItemAggregate } from '../cart/types/cart.type'
 
@@ -13,6 +13,7 @@ import { cacheData } from '~/common/utils/cache'
 import { stripe } from '~/common/configs/stripe.config'
 import { envConfig } from '~/common/configs/configs'
 import { enqueueEmailJob } from '~/common/queues/email.queue'
+import logger from '~/common/utils/logger'
 
 // State Machine: định nghĩa các transition hợp lệ cho Order Status
 // Tách ra module level — không tạo lại mỗi lần gọi updateOrderStatus
@@ -39,6 +40,9 @@ class OrdersService {
 
     // --- BẮT ĐẦU SETUP TRANSACTION ---
     const session = databaseServices.client.startSession()
+    const orderId = new ObjectId()
+    let orderData: Order | null = null
+
     try {
       session.startTransaction()
       for (const item of cartData.cart) {
@@ -49,8 +53,8 @@ class OrdersService {
           },
           {
             $inc: {
-              stock_quantity: -item.quantity,
-              sold_quantity: item.quantity
+              stock_quantity: -item.quantity
+              // Không tăng sold ở đây, đợi Webhook báo Paid mới tăng
             }
           },
           { session, returnDocument: 'after' }
@@ -64,9 +68,7 @@ class OrdersService {
       }
 
       // 3. Tạo Đơn hàng mới
-      const orderId = new ObjectId()
-
-      const orderData = new Order({
+      orderData = new Order({
         _id: orderId,
         user_id: new ObjectId(user_id),
         order_items: cartData.cart.map((item: CartItemAggregate) => ({
@@ -79,13 +81,13 @@ class OrdersService {
         total_amount: cartData.cart_total,
         status: OrderStatus.Pending,
         payment: {
-          payment_method: payload.payment_method,
-          payment_status: 'Pending',
+          payment_method: payload.payment_method as any as PaymentMethod,
+          payment_status: PaymentStatus.Pending,
           payment_id: ''
         },
         delivery: {
-          delivery_method: 'Standard',
-          delivery_status: 'Pending',
+          delivery_method: DeliveryMethod.Standard,
+          delivery_status: DeliveryStatus.Pending,
           address: payload.address,
           phone_number: payload.phone_number,
           receiver_name: payload.receiver_name
@@ -98,9 +100,17 @@ class OrdersService {
       await databaseServices.carts.updateOne({ user_id: new ObjectId(user_id) }, { $set: { items: [] } }, { session })
 
       await session.commitTransaction()
+    } catch (error) {
+      await session.abortTransaction()
+      throw error
+    } finally {
+      await session.endSession()
+    }
 
-      let checkout_url = null
-      if (payload.payment_method === 'Stripe') {
+    // Tạo Stripe Checkout Session NGOÀI transaction — để lỗi Stripe hiện rõ
+    let checkout_url: string | null = null
+    if (payload.payment_method === PaymentMethod.Stripe) {
+      try {
         const line_items = cartData.cart.map((item: CartItemAggregate) => ({
           price_data: {
             currency: 'usd',
@@ -126,20 +136,18 @@ class OrdersService {
         })
 
         checkout_url = stripeSession.url
+      } catch (stripeError: unknown) {
+        const msg = stripeError instanceof Error ? stripeError.message : String(stripeError)
+        logger.error(`[STRIPE CHECKOUT ERROR] Order ${orderId}: ${msg}`)
       }
+    }
 
-      return {
-        message: USERS_MESSAGES.CREATE_ORDER_SUCCESS,
-        data: {
-          ...orderData,
-          ...(checkout_url && { checkout_url })
-        }
+    return {
+      message: USERS_MESSAGES.CREATE_ORDER_SUCCESS,
+      data: {
+        ...orderData,
+        ...(checkout_url && { checkout_url })
       }
-    } catch (error) {
-      await session.abortTransaction()
-      throw error
-    } finally {
-      await session.endSession()
     }
   }
 
@@ -182,14 +190,14 @@ class OrdersService {
         })
       }
 
-      // 3. Restore Stock (Cộng lại kho + trừ lượt bán)
+      // 3. Restore Stock (Luôn cộng lại kho khi hủy)
       for (const item of order.order_items) {
         await databaseServices.products.updateOne(
           { _id: new ObjectId(item.product_id) },
           {
             $inc: {
-              stock_quantity: item.quantity,
-              sold_quantity: -item.quantity
+              stock_quantity: item.quantity
+              // sold_quantity: sẽ được trừ ở bước Refund bên dưới nếu đơn đã trả tiền
             }
           },
           { session }
@@ -197,6 +205,39 @@ class OrdersService {
       }
 
       await session.commitTransaction()
+
+      // 4. Stripe Refund & Restore Sold quantity
+      if (
+        order.payment.payment_method === PaymentMethod.Stripe &&
+        order.payment.payment_status === PaymentStatus.Paid &&
+        order.payment.payment_id
+      ) {
+        try {
+          await stripe.refunds.create({
+            payment_intent: order.payment.payment_id,
+            reason: 'requested_by_customer'
+          })
+          logger.info(`[STRIPE REFUND] Refunded payment_intent ${order.payment.payment_id} for order ${order_id}`)
+
+          // Nếu đơn đã Paid -> Trừ lại số lượng đã bán (sold) vì thực tế là trả hàng
+          for (const item of order.order_items) {
+            await databaseServices.products.updateOne(
+              { _id: new ObjectId(item.product_id) },
+              { $inc: { sold_quantity: -item.quantity } }
+            )
+          }
+
+          // Cập nhật payment_status thành Refunded
+          await databaseServices.orders.updateOne(
+            { _id: new ObjectId(order_id) },
+            { $set: { 'payment.payment_status': PaymentStatus.Refunded, updated_at: new Date() } }
+          )
+        } catch (refundError: unknown) {
+          const msg = refundError instanceof Error ? refundError.message : String(refundError)
+          logger.error(`[STRIPE REFUND ERROR] Order ${order_id}: ${msg}`)
+        }
+      }
+
       return result
     } catch (error) {
       await session.abortTransaction()
@@ -396,22 +437,20 @@ class OrdersService {
       const orderId = session.metadata.order_id
 
       if (orderId) {
-        // 1. Lấy thông tin đơn hàng trước để lấy user_id và total_amount
         const order = await databaseServices.orders.findOne({ _id: new ObjectId(orderId) })
 
         if (order) {
           // Idempotency check: Skip if already paid
-          if (order.payment.payment_status === 'Paid') {
-            console.log(`[STRIPE WEBHOOK] Order ${orderId} already processed (idempotency).`)
+          if (order.payment.payment_status === PaymentStatus.Paid) {
+            logger.info(`[STRIPE WEBHOOK] Order ${orderId} already processed (idempotency).`)
             return { received: true }
           }
 
-          // 2. Cập nhật trạng thái đơn hàng thành Paid
           await databaseServices.orders.updateOne(
             { _id: new ObjectId(orderId) },
             {
               $set: {
-                'payment.payment_status': 'Paid',
+                'payment.payment_status': PaymentStatus.Paid,
                 'payment.payment_id': session.payment_intent as string,
                 status: OrderStatus.Processing,
                 updated_at: new Date()
@@ -419,13 +458,20 @@ class OrdersService {
             }
           )
 
-          console.log(`[STRIPE WEBHOOK] Order ${orderId} has been successfully paid!`)
+          // --- CẬP NHẬT SOLD_QUANTITY ---
+          // Duyệt qua item trong đơn hàng để tăng số lượng đã bán
+          for (const item of order.order_items) {
+            await databaseServices.products.updateOne(
+              { _id: new ObjectId(item.product_id) },
+              { $inc: { sold_quantity: item.quantity } }
+            )
+            logger.info(`[INVENTORY] Incremented sold_quantity for product ${item.product_id} by ${item.quantity}`)
+          }
 
-          // 3. Tìm thông tin User để lấy email
+          logger.info(`[STRIPE WEBHOOK] Order ${orderId} has been successfully paid!`)
+
           const user = await databaseServices.users.findOne({ _id: order.user_id })
-
           if (user && user.email) {
-            // 4. Bắn thông tin vào Queue để Worker chạy ngầm gửi Email
             await enqueueEmailJob({
               type: 'order-confirmation',
               to: user.email,
@@ -433,11 +479,44 @@ class OrdersService {
               totalAmount: order.total_amount,
               currency: session.currency || 'usd'
             })
-            console.log(`[QUEUE] Pushed task to send order confirmation email to user ${user.email}`)
+            logger.info(`[QUEUE] Pushed task to send order confirmation email to user ${user.email}`)
           }
         }
       }
     }
+
+    // Xử lý khi Stripe session hết hạn hoặc thanh toán thất bại
+    if (event.type === 'checkout.session.expired' || event.type === 'checkout.session.async_payment_failed') {
+      const session = event.data.object
+      const orderId = session.metadata?.order_id
+
+      if (orderId) {
+        const order = await databaseServices.orders.findOne({ _id: new ObjectId(orderId) })
+        if (order && order.status === OrderStatus.Pending) {
+          await databaseServices.orders.updateOne(
+            { _id: new ObjectId(orderId) },
+            {
+              $set: {
+                status: OrderStatus.Cancelled,
+                'payment.payment_status': PaymentStatus.Failed,
+                updated_at: new Date()
+              }
+            }
+          )
+
+          // Restore stock
+          for (const item of order.order_items) {
+            await databaseServices.products.updateOne(
+              { _id: new ObjectId(item.product_id) },
+              { $inc: { stock_quantity: item.quantity } }
+            )
+          }
+
+          logger.warn(`[STRIPE WEBHOOK] Order ${orderId} cancelled/expired. Stock restored. Event: ${event.type}`)
+        }
+      }
+    }
+
     return { received: true }
   }
 }

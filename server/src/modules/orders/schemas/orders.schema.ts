@@ -75,11 +75,7 @@ export const GetOrdersAdminQuerySchema = z.object({
     .optional()
     .transform((val) => (val ? parseInt(val, 10) : 10))
     .pipe(z.number().int().min(1)),
-  status: z
-    .string()
-    .optional()
-    .transform((val) => (val ? parseInt(val, 10) : undefined))
-    .pipe(z.nativeEnum(OrderStatus).optional()),
+  status: z.nativeEnum(OrderStatus).optional(),
   search: z.string().optional()
 })
 

@@ -7,7 +7,7 @@ import ordersService from './orders.service'
 import { USERS_MESSAGES } from '~/common/constants/messages'
 import { envConfig } from '~/common/configs/configs'
 import { stripe } from '~/common/configs/stripe.config'
-import { USER_ROLE } from '~/common/constants/enums'
+import { USER_ROLE, OrderStatus } from '~/common/constants/enums'
 
 /**
  * @swagger
@@ -83,7 +83,7 @@ export const cancelOrderController = async (
 }
 
 export const updateOrderStatusController = async (
-  req: Request<ParamsDictionary, unknown, { status: number }>,
+  req: Request<ParamsDictionary, unknown, { status: OrderStatus }>,
   res: Response,
   _next: NextFunction
 ) => {
@@ -208,10 +208,14 @@ export const getAllOrdersAdminController = async (req: Request, res: Response) =
 export const handleStripeWebhookController = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string
   const endpointSecret = envConfig.STRIPE_WEBHOOK_SECRET as string
+  const rawBody = (req as any).rawBody
   let event
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret)
+    if (!rawBody) {
+      throw new Error('Raw body not found. Check middleware configuration.')
+    }
+    event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret)
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
     console.error(`[STRIPE WEBHOOK ERROR]: ${message}`)
