@@ -1,4 +1,6 @@
-# 🛒 TechGear E-Commerce Enterprise Platform
+# 🛒 TechGear E-Commerce Backend API
+
+[ 🇻🇳 Tiếng Việt ](README_VN.md) | [ 🇬🇧 English ](README.md)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-v20.x-green.svg)
@@ -9,173 +11,132 @@
 ![Telegram](https://img.shields.io/badge/Telegram-Bot--API-blue.svg)
 ![Build Status](https://img.shields.io/badge/Tests-26%2F26%20Passed-brightgreen.svg)
 
-TechGear E-Commerce là hệ thống bán hàng công nghệ trực tuyến toàn diện được xây dựng theo kiến trúc **Decoupled Backend & Frontend**, hỗ trợ xử lý thanh toán tự động qua **Cổng thanh toán SePay VietQR (Dual Sandbox & Production)** và phát cảnh báo báo động tức thì tới **Telegram Bot API**.
-
-🌐 **Live Demo & Deployment Links**:
-- **Backend Production Base URL**: `https://techgear-backend.onrender.com`
-- **Frontend Production Web App**: `https://techgear-frontend.vercel.app`
-- **Interactive SePay Studio Tester**: `https://techgear-backend.onrender.com/payments/test-checkout`
+TechGear Backend is an enterprise-grade RESTful API server powering the TechGear E-Commerce platform. Built with **Node.js, TypeScript, Express, MongoDB Atlas, Upstash Redis, BullQueue**, it seamlessly integrates automated bank transfers via **SePay VietQR Gateway** and emergency security alert messaging via **Telegram Bot API**.
 
 ---
 
-## 2. ✨ Tính Năng Chính (Key Features)
+## 1. 📌 Table of Contents
 
-### 👤 Phân Hệ Khách Hàng (User Flow)
-- **Xác thực & Bảo mật**: Đăng ký, Đăng nhập, Quên mật khẩu, Refresh Token tự động.
-- **Duyệt Sản Phẩm**: Lọc danh mục, tìm kiếm từ khóa, xem chi tiết sản phẩm và tồn kho.
-- **Giỏ Hàng & Checkout**: Thêm/Sửa/Xóa sản phẩm khỏi giỏ, tự động tính tổng tiền & phí vận chuyển.
-- **Thanh Toán VietQR Tự Động**: Tạo mã QR động với nội dung `INV<ObjectId>` chuẩn ngân hàng.
-
-### 🛡️ Phân Hệ Quản Trị (Admin Flow)
-- **Quản lý Sản Phẩm & Danh Mục**: CRUD sản phẩm, cập nhật giá, hình ảnh Cloudinary, số lượng tồn kho.
-- **Quản lý Đơn Hàng**: Theo dõi trạng thái đơn hàng (`Pending` -> `Paid` -> `Processing`).
-- **Đồng Bộ Lịch Sử Ngân Hàng**: 1-click sync toàn bộ lịch sử giao dịch từ SePay REST API v2.
-
-### ⚡ Tính Năng Kỹ Thuật Nổi Bật (Technical Features)
-- **SePay Dual-Environment**: Tự động chuyển đổi giữa **Sandbox (Test)** và **Production (Live)**.
-- **Bảo Mật Webhook Signature**: HMAC-SHA256 verification (`X-SePay-Signature` & `X-SePay-Timestamp`).
-- **Regex Matcher Thông Minh**: Tự động nhận diện cả 2 tiền tố mã đơn `INV` và `PAY`.
-- **Cảnh Báo Lỗi Khẩn Cấp Telegram**: Phát hiện khách chuyển thiếu tiền ➔ Bắn ngay cảnh báo màu đỏ `⚠️ TECHGEAR PAYMENT ALERT`.
-- **Hàng Đợi Gửi Email (BullQueue + Redis)**: Xử lý bất đồng bộ email xác nhận đơn hàng.
-- **Idempotency Guard**: Kháng trùng lặp Webhook 100%, không bị trừ tồn kho lần 2.
+1. [Key Features](#-key-features)
+2. [Tech Stack & Dependencies](#-tech-stack--dependencies)
+3. [Folder Structure](#-folder-structure)
+4. [Environment Variables Guide](#-environment-variables-guide)
+5. [API Endpoints Reference](#-api-endpoints-reference)
+6. [SePay VietQR Payment Gateway Engine](#-sepay-vietqr-payment-gateway-engine)
+7. [Telegram Emergency Alert System](#-telegram-emergency-alert-system)
+8. [Automated Test Execution](#-automated-test-execution)
+9. [Deployment Guide](#-deployment-guide)
 
 ---
 
-## 3. 🛠️ Công Nghệ Sử Dụng (Tech Stack)
+## 2. ✨ Key Features
 
-| Phân loại | Công nghệ / Thư viện | Công dụng |
-| :--- | :--- | :--- |
-| **Backend Runtime** | Node.js (v20.x), TypeScript (v5.x) | Môi trường thực thi & Mã nguồn typed |
-| **Web Framework** | Express.js (v4.18) | Framework HTTP RESTful API |
-| **Database** | MongoDB Atlas (Native Driver / Mongoose) | Cơ sở dữ liệu NoSQL |
-| **Caching & Queue** | Upstash Redis, BullQueue | Cache dữ liệu & Hàng đợi gửi Email |
-| **Validation Schema** | Zod Schema Validation | Kiểm tra tính hợp lệ của Payload |
-| **Payment Gateway** | SePay VietQR (SDK `sepay-pg-node`) | Cổng thanh toán ngân hàng tự động |
-| **Alerts & Messaging**| Telegram Bot API | Phát thông báo đơn mới & cảnh báo lỗi |
-| **Storage Service** | Cloudinary | Lưu trữ ảnh sản phẩm Cloud |
-| **Testing Tools** | Jest, Supertest, Cross-Env | Kiểm thử tích hợp tự động |
+- 🔑 **Dual JWT Token Authentication**: Access Tokens (15m) & Refresh Tokens (100d) with Bcrypt password hashing.
+- 🛡️ **Role-Based Access Control (RBAC)**: Secure admin-only routes for inventory management and product CRUD operations.
+- 🛒 **Order & Inventory Stock Guard**: Automatic item quantity validation and stock deduction upon successful payment.
+- 💳 **SePay VietQR Gateway Engine**:
+  - Runtime environment switching between Sandbox & Production.
+  - Security signature verification (`X-SePay-Signature` HMAC-SHA256).
+  - Regex invoice matcher supporting both `INV` and `PAY` prefixes.
+  - Idempotent Webhook IPN event processor preventing double deductions.
+- 🤖 **Telegram Alert System**: Instant notification dispatch for new orders and underpaid error alerts (`⚠️ TECHGEAR PAYMENT ALERT`).
+- 📧 **Async Job Queue**: Background email processing powered by Redis BullQueue.
 
 ---
 
-## 4. 🏛️ Kiến Trúc Hệ Thống & Cấu Trúc Thư Mục (Architecture & Folder Structure)
+## 3. 🛠️ Tech Stack & Dependencies
+
+- **Runtime**: Node.js v20 LTS, TypeScript v5
+- **Framework**: Express v4.18
+- **Database**: MongoDB Atlas (Native Driver / Mongoose)
+- **Cache & Queue**: Upstash Redis & BullQueue
+- **Security & Validation**: Zod Schema, Bcrypt, JsonWebToken
+- **Testing**: Jest, Supertest
+
+---
+
+## 4. 📁 Folder Structure
 
 ```text
-techgear-ecommerce/
-├── client/                     # Mã nguồn Frontend (React / Next.js)
-├── server/                     # Mã nguồn Backend API (Express / TypeScript)
-│   ├── src/
-│   │   ├── common/             # Configs, Constants, Middlewares, Queues, Services
-│   │   │   ├── configs/        # Cấu hình Zod Schema `.env`
-│   │   │   ├── constants/      # Enums, HTTP Status codes
-│   │   │   ├── middlewares/    # Error Handlers, Auth & RBAC Checkers
-│   │   │   ├── queues/         # BullQueue Email Workers
-│   │   │   ├── services/       # Database & Telegram Services
-│   │   │   └── utils/          # Logger & Helper utilities
-│   │   ├── modules/            # Chia theo từng Domain (Feature Modules)
-│   │   │   ├── auth/           # Quản lý Đăng ký / Đăng nhập
-│   │   │   ├── users/          # Quản lý Thông tin cá nhân
-│   │   │   ├── products/       # Quản lý Sản phẩm
-│   │   │   ├── categories/     # Quản lý Danh mục
-│   │   │   ├── carts/          # Quản lý Giỏ hàng
-│   │   │   ├── orders/         # Quản lý Đơn hàng
-│   │   │   └── payments/       # SePay VietQR Gateway Engine & Webhook
-│   │   ├── app.ts              # Khởi tạo Express App & Routes Register
-│   │   └── index.ts            # Entry Point Server
-│   ├── tests/                  # 8 Test Suites (26 Test Cases)
-│   ├── tsconfig.json           # Cấu hình TypeScript Compiler
-│   └── package.json            # Dependencies & Scripts
-└── README.md                   # Tài liệu hướng dẫn chính của dự án
+server/
+├── src/
+│   ├── common/                 # Shared Configs, Constants, Middlewares, Queues, Services
+│   │   ├── configs/            # Zod `.env` Validation Schema
+│   │   ├── constants/          # Enums & HTTP Status Codes
+│   │   ├── middlewares/        # Auth Checkers & Error Handlers
+│   │   ├── queues/             # BullQueue Email Workers
+│   │   ├── services/           # MongoDB & Telegram Services
+│   │   └── utils/              # Logger Utilities
+│   ├── modules/                # Feature Domain Modules
+│   │   ├── auth/               # Registration & Login Logic
+│   │   ├── users/              # User Profile Management
+│   │   ├── products/           # Product Catalog API
+│   │   ├── categories/         # Product Categories API
+│   │   ├── carts/              # Shopping Cart Logic
+│   │   ├── orders/             # Checkout & Order Processing
+│   │   └── payments/           # SePay VietQR Engine & Webhooks
+│   ├── app.ts                  # Express App Setup
+│   └── index.ts                # Server Entry Point
+├── tests/                      # 8 Integration Test Suites (26 Test Cases)
+└── package.json                # Server Dependencies & Scripts
 ```
 
 ---
 
-## 5. ⚙️ Yêu Cầu Môi Trường (Prerequisites)
+## 5. ⚙️ Environment Variables Guide
 
-Trước khi bắt đầu cài đặt, đảm bảo máy tính của bạn đã cài sẵn:
+Create `.env.development.local` or `.env.production` inside `server/`:
 
-- **Node.js**: Phiên bản `>= 18.x` (Khuyến nghị `v20.x LTS`).
-- **Package Manager**: `npm` (đi kèm Node.js).
-- **MongoDB**: Chuỗi kết nối MongoDB Atlas URI.
-- **Redis Cloud**: Upstash Redis hoặc Redis Local (Port `6379`).
-- **SePay Credentials**: Merchant ID & Secret Key (Sandbox hoặc Live).
-- **Telegram Bot**: Token từ `@BotFather` & Chat ID nhóm.
+```env
+PORT=3000
+HOST="0.0.0.0"
+NODE_ENV="production"
+MONGODB_URI="mongodb+srv://..."
+DB_NAME="ShoppingCart"
+
+PASSWORD_SECRET="your_password_secret"
+JWT_SECRET_ACCESS_TOKEN="your_access_token_secret"
+JWT_SECRET_REFRESH_TOKEN="your_refresh_token_secret"
+
+SEPAY_ENV="production"
+SEPAY_MERCHANT_ID="SP-LIVE-NT588865"
+SEPAY_SECRET_KEY="spsk_live_..."
+
+TELEGRAM_BOT_TOKEN="8874098441:AAEQ..."
+TELEGRAM_CHAT_ID="-1004294239186"
+```
 
 ---
 
-## 6. 🚀 Hướng Dẫn Cài Đặt & Chạy Cục Bộ (Getting Started)
+## 6. 🔌 API Endpoints Reference
 
-### Bước 1: Clone Mã Nguồn
-```bash
-git clone https://github.com/Duykhobo/techgear-ecommerce.git
-cd techgear-ecommerce/server
-```
-
-### Bước 2: Cài Đặt Dependencies
-```bash
-npm install --legacy-peer-deps
-```
-
-### Bước 3: Cấu Hình Biến Môi Trường (`.env`)
-Tạo file `.env.development.local` trong thư mục `server/`:
-
-| Biến Môi Trường | Ý Nghĩa / Mục Đích | Mẫu Giá Trị |
-| :--- | :--- | :--- |
-| `PORT` | Cổng HTTP Server | `3000` |
-| `HOST` | IP Lắng nghe | `"0.0.0.0"` |
-| `NODE_ENV` | Môi trường hoạt động | `"development"` |
-| `MONGODB_URI` | Chuỗi kết nối Mongo Atlas | `mongodb+srv://...` |
-| `DB_NAME` | Tên Database Mongo | `"ShoppingCart"` |
-| `PASSWORD_SECRET` | Khóa mã hóa mật khẩu | `"your_secret_hash"` |
-| `JWT_SECRET_ACCESS_TOKEN` | Khóa AccessToken JWT | `"your_access_secret"` |
-| `JWT_SECRET_REFRESH_TOKEN`| Khóa RefreshToken JWT | `"your_refresh_secret"` |
-| `SEPAY_ENV` | Môi trường SePay | `"sandbox"` hoặc `"production"` |
-| `SEPAY_MERCHANT_ID` | Mã Merchant SePay | `"SP-LIVE-NT588865"` |
-| `SEPAY_SECRET_KEY` | Khóa bảo mật Webhook | `"spsk_live_..."` |
-| `TELEGRAM_BOT_TOKEN` | Bot Token từ BotFather | `"8874098441:AAEQ..."` |
-| `TELEGRAM_CHAT_ID` | Chat ID Nhóm/Bot | `"-1004294239186"` |
-
-### Bước 4: Chạy Ứng Dụng ở Môi Trường Development
-```bash
-npm run dev
-```
-Mở trình duyệt truy cập: `http://localhost:3000` (hoặc `http://localhost:3000/payments/test-checkout` để vào SePay Studio Tester).
+| Category | Method | Endpoint | Auth | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **Auth** | `POST` | `/users/register` | Public | Register new user account |
+| **Auth** | `POST` | `/users/login` | Public | Authenticate user & return JWT tokens |
+| **Auth** | `POST` | `/users/refresh-token` | Public | Obtain new AccessToken using RefreshToken |
+| **Products** | `GET` | `/products` | Public | Get product list with pagination & filters |
+| **Products** | `POST` | `/products` | Admin | Create product item (Admin Only) |
+| **Orders** | `POST` | `/orders/checkout` | User | Checkout shopping cart into order |
+| **Payments** | `POST` | `/payments/sepay/ipn` | Public/SePay | Webhook handler for SePay IPN notifications |
+| **Payments** | `POST` | `/payments/sync-history` | Admin | Sync transaction history from SePay v2 REST API |
 
 ---
 
-## 7. 🧪 Kiểm Thử & Chất Lượng Mã Nguồn (Testing & Quality)
+## 7. 🧪 Automated Test Execution
 
-Dự án đi kèm **8 Bộ Kiểm Thử Tự Động (26/26 Test Cases Passed 100%)**:
+Run the full integration test suite:
 
 ```bash
-# Chạy toàn bộ Test Suites
+# Execute Jest test suite
 npm run test
 
-# Biên dịch kiểm tra lỗi TypeScript (Production Build Test)
+# Perform TypeScript build check
 npm run build
 ```
 
 ---
 
-## 8. 🔌 Tài Liệu API (API Documentation)
+## 8. 📄 License
 
-### 📑 Tóm Tắt Danh Sách API Endpoints Chính
-
-| Module | HTTP Method | Endpoint | Quyền Hạn | Mô tả |
-| :--- | :--- | :--- | :--- | :--- |
-| **Auth** | `POST` | `/users/register` | Public | Đăng ký tài khoản người dùng mới |
-| **Auth** | `POST` | `/users/login` | Public | Đăng nhập & Nhận cặp Token JWT |
-| **Auth** | `POST` | `/users/refresh-token` | Public | Gia hạn AccessToken từ RefreshToken |
-| **Products** | `GET` | `/products` | Public | Lấy danh sách sản phẩm (Lọc & Phân trang) |
-| **Products** | `POST` | `/products` | **Admin** | Tạo sản phẩm mới (Quyền Admin) |
-| **Cart** | `POST` | `/carts` | Protected | Thêm sản phẩm vào giỏ hàng |
-| **Orders** | `POST` | `/orders/checkout` | Protected | Khởi tạo đơn hàng từ giỏ |
-| **Payments** | `POST` | `/payments/sepay/ipn` | Public/SePay | Webhook nhận tín hiệu thanh toán từ SePay |
-| **Payments** | `POST` | `/payments/sync-history` | Protected | Đồng bộ lịch sử ngân hàng từ SePay API v2 |
-
----
-
-## 9. 👨‍💻 Tác Giả & Giấy Phép (Authors & License)
-
-- **Tác giả / Lead Developer**: Duykhobo (TechGear Engineering Team)
-- **Email Liên Hệ**: `contact@techgear.com` / `Duykhobo@users.noreply.github.com`
-- **Giấy phép (License)**: Được phát hành theo giấy phép **MIT License**.
+MIT License. Developed for TechGear E-Commerce Platform.
