@@ -77,31 +77,25 @@ TechGear E-Commerce is an enterprise-grade online tech retail platform built wit
 
 ```text
 techgear-ecommerce/
-├── client/                     # Frontend Web App Source Code (React / Next.js)
-├── server/                     # Backend API Source Code (Express / TypeScript)
+├── client/                     # Frontend Web App Source Code (Vite + React + TS + Tailwind + Zustand)
 │   ├── src/
-│   │   ├── common/             # Shared Configs, Constants, Middlewares, Queues, Services
-│   │   │   ├── configs/        # Zod Schema `.env` validation
-│   │   │   ├── constants/      # Enums & HTTP Status codes
-│   │   │   ├── middlewares/    # Error Handlers, Auth & RBAC Checkers
-│   │   │   ├── queues/         # BullQueue Email Workers
-│   │   │   ├── services/       # Database & Telegram Services
-│   │   │   └── utils/          # Logger & Helper utilities
-│   │   ├── modules/            # Domain Feature Modules
-│   │   │   ├── auth/           # Authentication Logic
-│   │   │   ├── users/          # Profile & User Management
-│   │   │   ├── products/       # Product Catalog
-│   │   │   ├── categories/     # Category Management
-│   │   │   ├── carts/          # Cart Management
-│   │   │   ├── orders/         # Order & Checkout Flow
-│   │   │   └── payments/       # SePay VietQR Gateway & Webhook Engine
-│   │   ├── app.ts              # Express Application Initialization
+│   │   ├── api/                # Axios Client Instance with Interceptors & Service Calls
+│   │   ├── components/         # Reusable UI Components (Navbar, Footer, ProductCard)
+│   │   ├── pages/              # App Pages (HomePage, ProductsPage, CartPage, LoginPage, RegisterPage)
+│   │   ├── routes/             # App Router Configuration
+│   │   ├── store/              # Zustand Global Stores (Auth & Cart)
+│   │   └── types/              # TypeScript Interfaces (Synced with Backend)
+│   ├── vite.config.ts          # Vite Configuration with API Proxy to http://localhost:3000
+│   └── package.json            # Frontend Dependencies & Scripts
+├── server/                     # Backend API Server (Express + TypeScript + MongoDB + Redis)
+│   ├── postman/                # Postman API Collections & Environment Files
+│   ├── src/
+│   │   ├── common/             # Middlewares, Configs, Redis, Queues, Services
+│   │   ├── modules/            # Auth, Users, Products, Categories, Cart, Orders, Payments
 │   │   └── index.ts            # Server Entry Point
-│   ├── tests/                  # 8 Test Suites (26 Test Cases)
-│   ├── tsconfig.json           # TypeScript Compiler Options
-│   └── package.json            # Dependencies & Scripts
-├── README_VN.md                # Vietnamese Project Documentation
-└── README.md                   # Main English Documentation
+│   ├── tests/                  # Integration Test Suites (26 Test Cases)
+│   └── package.json            # Backend Dependencies & Scripts
+└── README.md                   # Main Project Documentation
 ```
 
 ---
@@ -124,38 +118,25 @@ Ensure the following tools are installed on your machine before setup:
 ### Step 1: Clone Repository
 ```bash
 git clone https://github.com/Duykhobo/techgear-ecommerce.git
-cd techgear-ecommerce/server
+cd techgear-ecommerce
 ```
 
-### Step 2: Install Dependencies
+### Step 2: Start Backend API (`server`)
 ```bash
+cd server
 npm install --legacy-peer-deps
-```
-
-### Step 3: Configure Environment Variables (`.env`)
-Create `.env.development.local` in `server/`:
-
-| Environment Variable | Description | Sample Value |
-| :--- | :--- | :--- |
-| `PORT` | HTTP Server Port | `3000` |
-| `HOST` | Binding Network Host | `"0.0.0.0"` |
-| `NODE_ENV` | Environment Mode | `"development"` |
-| `MONGODB_URI` | Mongo Atlas URI Connection | `mongodb+srv://...` |
-| `DB_NAME` | Mongo Database Name | `"ShoppingCart"` |
-| `PASSWORD_SECRET` | Password Hashing Secret | `"your_secret_hash"` |
-| `JWT_SECRET_ACCESS_TOKEN` | Access Token Secret | `"your_access_secret"` |
-| `JWT_SECRET_REFRESH_TOKEN`| Refresh Token Secret | `"your_refresh_secret"` |
-| `SEPAY_ENV` | SePay Environment Mode | `"sandbox"` or `"production"` |
-| `SEPAY_MERCHANT_ID` | SePay Merchant ID | `"SP-LIVE-NT588865"` |
-| `SEPAY_SECRET_KEY` | Webhook HMAC Secret Key | `"spsk_live_..."` |
-| `TELEGRAM_BOT_TOKEN` | Bot Token from BotFather | `"8874098441:AAEQ..."` |
-| `TELEGRAM_CHAT_ID` | Group / Chat ID | `"-1004294239186"` |
-
-### Step 4: Run Application in Development Mode
-```bash
 npm run dev
 ```
-Access in browser: `http://localhost:3000` (or `http://localhost:3000/payments/test-checkout` for SePay Studio Tester).
+Backend API will run at `http://localhost:3000`.
+
+### Step 3: Start Frontend App (`client`)
+In a new terminal tab:
+```bash
+cd client
+npm install
+npm run dev
+```
+Frontend App will run at `http://localhost:5173`. Proxies `/api` requests to `http://localhost:3000`.
 
 ---
 

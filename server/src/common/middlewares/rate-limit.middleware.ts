@@ -51,6 +51,7 @@ export const globalRateLimiter = rateLimit({
   limit: 100,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
+  skip: (req) => req.path === '/health' || req.path === '/' || req.path === '/swagger.json',
   message: {
     message: 'Too many requests from this IP, please try again after 15 minutes.',
     status: HTTP_STATUS.TOO_MANY_REQUESTS

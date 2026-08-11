@@ -121,6 +121,17 @@ TELEGRAM_CHAT_ID="-1004294239186"
 | **Payments** | `POST` | `/payments/sepay/ipn` | Public/SePay | Webhook handler for SePay IPN notifications |
 | **Payments** | `POST` | `/payments/sync-history` | Admin | Sync transaction history from SePay v2 REST API |
 
+### 6.1 📬 Postman Collections & Import Guide
+Postman collection and environment files are stored in [`server/postman/`](file:///c:/Users/ThanhDuy/Documents/01_Code_Projects/techgear-ecommerce/server/postman):
+- `TechGear_Postman_Collection.json`: Full API Request Collection.
+- `TechGear_Postman_Environment.json`: Base Environment Variables.
+- `techgear_postman_admin_env.json`, `techgear_postman_user_env.json`: Preset tokens for Admin/User roles.
+
+**Import Steps**:
+1. Open Postman -> Click **Import**.
+2. Drag and drop all files from `server/postman/`.
+3. Select the desired environment (`TechGear Admin` or `TechGear User`) in Postman dropdown and start testing!
+
 ---
 
 ## 7. 🧪 Automated Test Execution

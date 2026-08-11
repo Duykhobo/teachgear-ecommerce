@@ -29,6 +29,48 @@ initFolder()
 
 const app = express() //tạo server
 
+// Tin tưởng proxy (Reverse proxy như Render/Nginx/Cloudflare) để lấy IP thật của client
+app.set('trust proxy', 1)
+
+// Health Check & Root Endpoints (Đặt trước Rate Limiter để không bị 429 khi Cloud Health Checker ping)
+app.get('/health', async (_req, res) => {
+  const healthStatus = {
+    uptime: process.uptime(),
+    message: 'OK',
+    timestamp: Date.now(),
+    services: {
+      mongodb: 'unknown',
+      redis: 'unknown'
+    }
+  }
+
+  try {
+    // Check MongoDB
+    await databaseServices.db.command({ ping: 1 })
+    healthStatus.services.mongodb = 'healthy'
+
+    // Check Redis (Graceful fallback)
+    try {
+      await redisConnection.ping()
+      healthStatus.services.redis = 'healthy'
+    } catch {
+      healthStatus.services.redis = 'degraded'
+    }
+
+    res.status(200).json(healthStatus)
+  } catch {
+    healthStatus.message = 'unhealthy'
+    res.status(503).json(healthStatus)
+  }
+})
+
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    message: 'Chào mừng bạn đến với Hệ thống Backend của TechGear!',
+    status: 'Server đang hoạt động rất tốt!'
+  })
+})
+
 // 1. Cấu hình CORS: Cho phép Frontend truy cập
 app.use(
   cors({
@@ -39,13 +81,6 @@ app.use(
 
 // 2. Rate Limiting: Bảo vệ server khỏi spam request
 app.use(globalRateLimiter)
-
-app.get('/', (_req, res) => {
-  res.status(200).json({
-    message: 'Chào mừng bạn đến với Hệ thống Backend của TechGear!',
-    status: 'Server đang hoạt động rất tốt!'
-  })
-})
 
 const PORT = process.env.PORT || 3000 //server chạy trên cổng port 3000
 
@@ -103,38 +138,6 @@ app.get('/swagger.json', (_req, res) => {
   res.json(swaggerSpec)
 })
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
-
-// Health Check Endpoint
-app.get('/health', async (_req, res) => {
-  const healthStatus = {
-    uptime: process.uptime(),
-    message: 'OK',
-    timestamp: Date.now(),
-    services: {
-      mongodb: 'unknown',
-      redis: 'unknown'
-    }
-  }
-
-  try {
-    // Check MongoDB
-    await databaseServices.db.command({ ping: 1 })
-    healthStatus.services.mongodb = 'healthy'
-
-    // Check Redis (Graceful fallback)
-    try {
-      await redisConnection.ping()
-      healthStatus.services.redis = 'healthy'
-    } catch {
-      healthStatus.services.redis = 'degraded'
-    }
-
-    res.status(200).json(healthStatus)
-  } catch {
-    healthStatus.message = 'unhealthy'
-    res.status(503).json(healthStatus)
-  }
-})
 
 app.use(defaultErrorHandler)
 

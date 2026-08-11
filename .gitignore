@@ -1,0 +1,50 @@
+# Root GitIgnore for Monorepo Workspace (TechGear E-Commerce)
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Production build outputs
+dist/
+**/dist/
+build/
+**/build/
+out/
+**/out/
+
+# Environment files
+.env
+.env*
+!.env.example
+**/.env
+**/.env*
+!**/.env.example
+
+# Logs
+logs/
+**/logs/
+*.log
+**/*.log
+
+# Operating System & IDE files
+.DS_Store
+.vscode/
+**/.vscode/
+.idea/
+**/.idea/
+*.swp
+*.tmp
+
+# AI Agent & IDE Tooling
+.agents/
+**/.agents/
+skills-lock.json
+**/skills-lock.json
+.windsurf/
+**/.windsurf/
+
+# Temporary & Archive files
+stripe-cli*
+*.zip
+tests_errors.log
+git_status.txt

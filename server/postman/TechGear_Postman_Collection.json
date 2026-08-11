@@ -1,0 +1,288 @@
+{
+  "info": {
+    "_postman_id": "techgear-ecommerce-api-collection-v1",
+    "name": "TechGear E-Commerce Backend API Collection",
+    "description": "Complete Postman API Collection for TechGear E-commerce Backend (Auth, Google OAuth2, Categories, Products, Cart, Orders, SePay Payments, Users, Media Upload).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register New User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nguyen Van A\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password123!\",\n  \"confirm_password\": \"Password123!\",\n  \"date_of_birth\": \"2000-01-01T00:00:00.000Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.result && jsonData.result.access_token) {",
+                  "    pm.collectionVariables.set('accessToken', jsonData.result.access_token);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.result.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@techgear.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Google OAuth2 Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_token\": \"YOUR_GOOGLE_ID_TOKEN_FROM_FRONTEND\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/google", "host": ["{{baseUrl}}"], "path": ["auth", "google"] }
+          }
+        },
+        {
+          "name": "Refresh Access Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/refresh-token", "host": ["{{baseUrl}}"], "path": ["auth", "refresh-token"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Users & Profile",
+      "item": [
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nguyen Van A Updated\",\n  \"date_of_birth\": \"1999-12-31T00:00:00.000Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] }
+          }
+        },
+        {
+          "name": "Create Category (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gaming Laptops\",\n  \"description\": \"High performance laptops for gaming\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Products",
+      "item": [
+        {
+          "name": "Get All Products (Pagination & Filter)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Product (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ASUS ROG Strix G16\",\n  \"price\": 35000000,\n  \"stock_quantity\": 15,\n  \"category\": \"CATEGORY_ID_HERE\",\n  \"description\": \"Core i9 14900HX, RTX 4080\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/products", "host": ["{{baseUrl}}"], "path": ["products"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Cart",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/carts", "host": ["{{baseUrl}}"], "path": ["carts"] }
+          }
+        },
+        {
+          "name": "Add/Update Item in Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"PRODUCT_ID_HERE\",\n  \"quantity\": 2\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/carts", "host": ["{{baseUrl}}"], "path": ["carts"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Orders & Checkout",
+      "item": [
+        {
+          "name": "Checkout Order with SePay QR",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"123 Nguyen Hue, Quan 1, TP.HCM\",\n  \"phone_number\": \"0987654321\",\n  \"receiver_name\": \"Nguyen Van A\",\n  \"payment_method\": \"SePay\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/orders", "host": ["{{baseUrl}}"], "path": ["orders"] }
+          }
+        },
+        {
+          "name": "Checkout Order with COD",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"123 Nguyen Hue, Quan 1, TP.HCM\",\n  \"phone_number\": \"0987654321\",\n  \"receiver_name\": \"Nguyen Van A\",\n  \"payment_method\": \"COD\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/orders", "host": ["{{baseUrl}}"], "path": ["orders"] }
+          }
+        },
+        {
+          "name": "Get User Order History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/orders/me", "host": ["{{baseUrl}}"], "path": ["orders", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Payments (SePay Webhook)",
+      "item": [
+        {
+          "name": "Simulate SePay ORDER_PAID IPN Webhook",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timestamp\": 1786415199636,\n  \"notification_type\": \"ORDER_PAID\",\n  \"order\": {\n    \"id\": \"SP_TRANS_100\",\n    \"order_id\": \"ORDER_ID_HERE\",\n    \"order_status\": \"PAID\",\n    \"order_currency\": \"VND\",\n    \"order_amount\": \"15000000.00\",\n    \"order_invoice_number\": \"INV-ORDER_ID_HERE\",\n    \"order_description\": \"Thanh toan don hang ORDER_ID_HERE\"\n  },\n  \"transaction\": {\n    \"id\": \"TX_12345678\",\n    \"payment_method\": \"BANK_TRANSFER\",\n    \"transaction_id\": \"FT240811999\",\n    \"transaction_status\": \"SUCCESS\",\n    \"transaction_amount\": \"15000000.00\"\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/payments/sepay/ipn", "host": ["{{baseUrl}}"], "path": ["payments", "sepay", "ipn"] }
+          }
+        }
+      ]
+    }
+  ]
+}

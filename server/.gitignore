@@ -148,9 +148,13 @@ dist/
 build/
 .vscode/
 uploads/
+stripe-cli*
+*.zip
+.agents/
+skills-lock.json
+.windsurf/
 test_out*.txt
 *.txt
-*.md
 *.log
 !tests/*.test.ts
 *.setup.ts

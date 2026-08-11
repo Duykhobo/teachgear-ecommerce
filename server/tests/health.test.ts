@@ -18,4 +18,13 @@ describe('System Health & Root Endpoint Tests', () => {
     expect(response.body.services).toBeDefined()
     expect(response.body.services.mongodb).toBe('healthy')
   })
+
+  it('Should not be rate limited even after sending more than 100 requests to /health', async () => {
+    const requests = Array.from({ length: 105 }, () => request(app).get('/health'))
+    const responses = await Promise.all(requests)
+
+    for (const response of responses) {
+      expect(response.status).toBe(200)
+    }
+  })
 })
