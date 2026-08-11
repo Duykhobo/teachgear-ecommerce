@@ -152,7 +152,7 @@ test_out*.txt
 *.txt
 *.md
 *.log
-*.test.ts
+!tests/*.test.ts
 *.setup.ts
 setup.ts
 
