@@ -192,5 +192,6 @@ npm run build
 ## 9. 👨‍💻 Tác Giả & Giấy Phép (Authors & License)
 
 - **Tác giả / Lead Developer**: Duykhobo (TechGear Engineering Team)
-- **Email Liên Hệ**: `contact@techgear.com` / `Duykhobo@users.noreply.github.com`
-- **Giấy phép (License)**: Được phát hành theo giấy phép **MIT License**.
+- **Trang GitHub**: [https://github.com/Duykhobo](https://github.com/Duykhobo)
+- **Hỗ trợ / Báo lỗi**: [TechGear Issues Page](https://github.com/Duykhobo/techgear-ecommerce/issues)
+- **Giấy phép (License)**: Phát hành theo giấy phép **MIT License** (Xem chi tiết tại file [LICENSE](LICENSE)).

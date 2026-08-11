@@ -137,6 +137,9 @@ npm run build
 
 ---
 
-## 8. 📄 Giấy Phép
+## 8. 👨‍💻 Tác Giả & Giấy Phép
 
-Giấy phép MIT License. Phát triển cho Hệ thống Thương Mại Điện Tử TechGear.
+- **Tác giả / Lead Developer**: Duykhobo (TechGear Engineering Team)
+- **Trang GitHub**: [https://github.com/Duykhobo](https://github.com/Duykhobo)
+- **Hỗ trợ / Báo lỗi**: [TechGear Issues Page](https://github.com/Duykhobo/techgear-ecommerce/issues)
+- **Giấy phép (License)**: Giấy phép MIT License (Xem chi tiết tại file [LICENSE](../LICENSE)).

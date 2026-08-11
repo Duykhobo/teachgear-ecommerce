@@ -192,5 +192,6 @@ npm run build
 ## 9. 👨‍💻 Authors & License
 
 - **Author / Lead Developer**: Duykhobo (TechGear Engineering Team)
-- **Contact Email**: `contact@techgear.com` / `Duykhobo@users.noreply.github.com`
-- **License**: Released under the **MIT License**.
+- **GitHub Profile**: [https://github.com/Duykhobo](https://github.com/Duykhobo)
+- **Support / Issues**: [TechGear Issues Page](https://github.com/Duykhobo/techgear-ecommerce/issues)
+- **License**: Released under the **MIT License** (See [LICENSE](LICENSE) file).
