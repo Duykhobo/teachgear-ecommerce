@@ -70,7 +70,7 @@ class SePayService {
     const checkout_fields = client.checkout.initOneTimePaymentFields({
       operation: 'PURCHASE',
       payment_method: 'BANK_TRANSFER',
-      order_invoice_number: invoice_number || `INV-${order_id}`,
+      order_invoice_number: invoice_number || `INV${order_id}`,
       order_amount: Math.round(amount),
       currency: 'VND',
       order_description: description || `Thanh toan don hang ${order_id}`,
@@ -100,9 +100,9 @@ class SePayService {
         'delivery.phone_number': invoiceNumber
       })
 
-      if (!order && ObjectId.isValid(invoiceNumber.replace('INV-', ''))) {
-        const orderId = invoiceNumber.replace('INV-', '')
-        order = await databaseServices.orders.findOne({ _id: new ObjectId(orderId) })
+      const cleanId = invoiceNumber.replace(/^INV-?/i, '')
+      if (!order && ObjectId.isValid(cleanId)) {
+        order = await databaseServices.orders.findOne({ _id: new ObjectId(cleanId) })
       }
 
       if (order) {

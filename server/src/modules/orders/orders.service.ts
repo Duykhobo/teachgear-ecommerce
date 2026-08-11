@@ -112,7 +112,7 @@ class OrdersService {
     if (payload.payment_method === PaymentMethod.SePay) {
       sepay_form = sePayService.initCheckoutForm({
         order_id: orderId.toString(),
-        invoice_number: `INV-${orderId.toString()}`,
+        invoice_number: `INV${orderId.toString()}`,
         amount: cartData.cart_total,
         description: `Thanh toan don hang ${orderId.toString()}`
       })
