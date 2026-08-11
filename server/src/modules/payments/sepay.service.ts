@@ -89,8 +89,8 @@ class SePayService {
   /**
    * Xử lý Webhook / IPN từ SePay khi có thanh toán chuyển khoản thành công (hỗ trợ cả Sandbox lẫn Production)
    */
-  public async handleIPN(payload: SePayIPNPayload) {
-    logger.info(`[SEPAY IPN] Received notification: ${JSON.stringify(payload)}`)
+  public async handleIPN(payload: SePayIPNPayload, signature?: string) {
+    logger.info(`[SEPAY IPN] Received notification. Signature: ${signature || 'None'}`)
 
     if (payload.notification_type === 'ORDER_PAID' && payload.order) {
       const invoiceNumber = payload.order.order_invoice_number
