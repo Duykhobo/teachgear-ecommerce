@@ -12,6 +12,7 @@ import { USERS_MESSAGES } from '~/common/constants/messages'
 import { ErrorWithStatus } from '~/common/models/Errors'
 import { envConfig } from '~/common/configs/configs'
 import { enqueueEmailJob } from '~/common/queues/email.queue'
+import { OAuth2Client } from 'google-auth-library'
 
 class AuthService {
   private signAccessToken(user_id: string, role: USER_ROLE) {
@@ -362,6 +363,78 @@ class AuthService {
     })
     return {
       message: USERS_MESSAGES.RESEND_VERIFY_EMAIL_SUCCESS
+    }
+  }
+
+  async loginWithGoogle({ id_token }: { id_token: string }) {
+    const client = new OAuth2Client(envConfig.GOOGLE_CLIENT_ID)
+
+    let payload
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: id_token,
+        audience: envConfig.GOOGLE_CLIENT_ID
+      })
+      payload = ticket.getPayload()
+    } catch (_err) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.INVALID_GOOGLE_TOKEN || 'Google ID Token không hợp lệ',
+        status: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+
+    if (!payload || !payload.email) {
+      throw new ErrorWithStatus({
+        message: USERS_MESSAGES.INVALID_GOOGLE_TOKEN || 'Google ID Token không hợp lệ',
+        status: HTTP_STATUS.UNAUTHORIZED
+      })
+    }
+
+    const { email, name, picture } = payload
+
+    // 1. Kiểm tra xem user đã tồn tại chưa
+    let user = await databaseServices.users.findOne({ email })
+
+    if (!user) {
+      // 2. Nếu chưa có -> Tạo user mới với status Verified (vì email Google đã verify)
+      const user_id = new ObjectId()
+      const newUser = new User({
+        _id: user_id,
+        name: name || 'Google User',
+        email,
+        password: hashPassword(new ObjectId().toString() + Math.random().toString()),
+        date_of_birth: new Date().toISOString(),
+        verify: UserVerifyStatus.Verified,
+        avatar: picture || '',
+        role: USER_ROLE.User
+      })
+
+      await databaseServices.users.insertOne(newUser)
+      user = newUser
+    }
+
+    // 3. Cấp Access & Refresh Token
+    const user_id = user._id.toString()
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id, user.role)
+
+    await databaseServices.refreshTokens.updateOne(
+      { token: refresh_token },
+      {
+        $set: {
+          user_id: new ObjectId(user_id),
+          token: refresh_token,
+          created_at: new Date()
+        }
+      },
+      { upsert: true }
+    )
+
+    const { password: _p, email_verify_token: _e, forgot_password_token: _f, ...userWithoutSecrets } = user
+
+    return {
+      access_token,
+      refresh_token,
+      user: userWithoutSecrets
     }
   }
 }

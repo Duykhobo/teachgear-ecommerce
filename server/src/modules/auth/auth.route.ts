@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   ForgotPasswordSchema,
+  GoogleLoginSchema,
   LoginSchema,
   RegisterSchema,
   ResetPasswordSchema
@@ -10,6 +11,7 @@ import {
   emailVerifyController,
   emailVerifyGetController,
   forgotPasswordController,
+  googleLoginController,
   loginController,
   logoutController,
   refreshTokenController,
@@ -141,6 +143,50 @@ authRoutes.post('/register', authLimiter, validate(RegisterSchema), wrapAsync(re
  *         description: Too many requests.
  */
 authRoutes.post('/login', authLimiter, validate(LoginSchema), wrapAsync(loginController))
+
+/**
+ * @swagger
+ * /auth/google:
+ *   post:
+ *     summary: Login or Register with Google OAuth (ID Token)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [id_token]
+ *             properties:
+ *               id_token:
+ *                 type: string
+ *                 description: Google ID Token obtained from Google One Tap / Google Sign-In SDK
+ *                 example: eyJhbGciOiJSUzI1NiIsImtpZCI6...
+ *     responses:
+ *       200:
+ *         description: Login successful. Returns access_token and refresh_token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     result:
+ *                       type: object
+ *                       properties:
+ *                         access_token:
+ *                           type: string
+ *                         refresh_token:
+ *                           type: string
+ *                         user:
+ *                           $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Invalid Google Token.
+ *       429:
+ *         description: Too many requests.
+ */
+authRoutes.post('/google', authLimiter, validate(GoogleLoginSchema), wrapAsync(googleLoginController))
 
 /**
  * @swagger

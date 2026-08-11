@@ -77,9 +77,14 @@ export const EmailVerifyBodySchema = z.object({
   email_verify_token: z.string().trim().min(1, { message: USERS_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED })
 })
 
+export const GoogleLoginBodySchema = z.object({
+  id_token: z.string().trim().min(1, { message: USERS_MESSAGES.INVALID_GOOGLE_TOKEN || 'Google ID Token là bắt buộc' })
+})
+
 // --- Request Schemas (for middleware) ---
 export const RegisterSchema = z.object({ body: RegisterBodySchema })
 export const LoginSchema = z.object({ body: LoginBodySchema })
+export const GoogleLoginSchema = z.object({ body: GoogleLoginBodySchema })
 export const LogoutSchema = z.object({ body: LogoutBodySchema })
 export const RefreshTokenSchema = z.object({ body: RefreshTokenBodySchema })
 export const ForgotPasswordSchema = z.object({ body: ForgotPasswordBodySchema })

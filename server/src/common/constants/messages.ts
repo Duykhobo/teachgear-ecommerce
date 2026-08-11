@@ -66,6 +66,8 @@ export const USERS_MESSAGES = {
   /* --- THÔNG BÁO THÀNH CÔNG --- */
   REGISTER_SUCCESS: 'Đăng ký thành công',
   LOGIN_SUCCESS: 'Đăng nhập thành công',
+  GOOGLE_LOGIN_SUCCESS: 'Đăng nhập Google thành công',
+  INVALID_GOOGLE_TOKEN: 'Google ID Token không hợp lệ',
   LOGOUT_SUCCESS: 'Đăng xuất thành công',
   EMAIL_VERIFY_SUCCESS: 'Xác thực email thành công',
   RESEND_VERIFY_EMAIL_SUCCESS: 'Gửi lại email xác thực thành công',
@@ -139,6 +141,7 @@ export const USERS_MESSAGES = {
   /* --- MEDIA --- */
   UPLOAD_IMAGE_SUCCESS: 'Upload hình ảnh thành công',
   UPLOAD_VIDEO_SUCCESS: 'Upload video thành công',
+  UPLOAD_IMAGE_FAIL: 'Tải ảnh lên thất bại',
 
   /* --- QUYỀN TRUY CẬP --- */
   FORBIDDEN: 'Không có quyền truy cập: Yêu cầu quyền Admin',

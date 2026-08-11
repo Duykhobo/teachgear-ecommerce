@@ -14,7 +14,8 @@ import {
   RegisterReqBody,
   ResetPasswordReqBody,
   TokenPayload,
-  EmailVerifyReqBody
+  EmailVerifyReqBody,
+  GoogleLoginReqBody
 } from './types/auth.types'
 import { UserVerifyStatus } from '~/common/constants/enums'
 
@@ -39,6 +40,18 @@ export const loginController = async (req: Request<ParamsDictionary, unknown, Lo
 
   return res.status(HTTP_STATUS.OK).json({
     message: USERS_MESSAGES.LOGIN_SUCCESS,
+    result
+  })
+}
+
+export const googleLoginController = async (
+  req: Request<ParamsDictionary, unknown, GoogleLoginReqBody>,
+  res: Response
+) => {
+  const result = await authService.loginWithGoogle(req.body)
+
+  return res.status(HTTP_STATUS.OK).json({
+    message: USERS_MESSAGES.GOOGLE_LOGIN_SUCCESS,
     result
   })
 }

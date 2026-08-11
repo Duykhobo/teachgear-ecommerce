@@ -8,7 +8,8 @@ import {
   ForgotPasswordBodySchema,
   VerifyForgotPasswordTokenBodySchema,
   ResetPasswordBodySchema,
-  EmailVerifyBodySchema
+  EmailVerifyBodySchema,
+  GoogleLoginBodySchema
 } from '../schemas/auth.validation'
 import z from 'zod'
 import { TokenType, USER_ROLE } from '~/common/constants/enums'
@@ -16,6 +17,7 @@ import { TokenType, USER_ROLE } from '~/common/constants/enums'
 // --- Types(For Service) ---
 export type RegisterReqBody = z.infer<typeof RegisterBodySchema>
 export type LoginReqBody = z.infer<typeof LoginBodySchema>
+export type GoogleLoginReqBody = z.infer<typeof GoogleLoginBodySchema>
 export type LogoutReqBody = z.infer<typeof LogoutBodySchema>
 export type RefreshTokenReqBody = z.infer<typeof RefreshTokenBodySchema>
 export type ForgotPasswordReqBody = z.infer<typeof ForgotPasswordBodySchema>

@@ -81,7 +81,12 @@ export const configSchema = z.object({
   STRIPE_SECRET_KEY: z.string(),
   STRIPE_WEBHOOK_SECRET: z.string(),
   STRIPE_SUCCESS_URL: z.string(),
-  STRIPE_CANCEL_URL: z.string()
+  STRIPE_CANCEL_URL: z.string(),
+
+  // Google OAuth2
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_REDIRECT_URI: z.string().optional()
 })
 
 // Validate process.env
