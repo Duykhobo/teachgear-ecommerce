@@ -398,12 +398,13 @@ class AuthService {
     if (!user) {
       // 2. Nếu chưa có -> Tạo user mới với status Verified (vì email Google đã verify)
       const user_id = new ObjectId()
+      const hashedPassword = await hashPassword(new ObjectId().toString() + Math.random().toString())
       const newUser = new User({
         _id: user_id,
         name: name || 'Google User',
         email,
-        password: hashPassword(new ObjectId().toString() + Math.random().toString()),
-        date_of_birth: new Date().toISOString(),
+        password: hashedPassword,
+        date_of_birth: new Date(),
         verify: UserVerifyStatus.Verified,
         avatar: picture || '',
         role: USER_ROLE.User
