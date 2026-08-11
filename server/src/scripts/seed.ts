@@ -3,9 +3,19 @@ import databaseServices from '../common/services/database.service'
 import Category from '../modules/categories/models/category.model'
 import Product from '../modules/products/models/product.model'
 import User from '../modules/users/models/user.model'
+import Cart from '../modules/cart/models/cart.model'
+import Order from '../modules/orders/models/orders.model'
 import { ProductType } from '../modules/products/types/product.types'
 import { hashPassword } from '../common/utils/crypto'
-import { USER_ROLE, UserVerifyStatus } from '../common/constants/enums'
+import {
+  USER_ROLE,
+  UserVerifyStatus,
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+  DeliveryMethod,
+  DeliveryStatus
+} from '../common/constants/enums'
 
 async function seed() {
   await databaseServices.connect()
@@ -20,9 +30,12 @@ async function seed() {
 
   console.log('Seeding Users...')
   const password = await hashPassword('Password123!')
+  const adminId = new ObjectId()
+  const userId = new ObjectId()
+
   const users = [
     new User({
-      _id: new ObjectId(),
+      _id: adminId,
       name: 'Admin TechGear',
       email: 'admin@techgear.com',
       password,
@@ -32,7 +45,7 @@ async function seed() {
       updated_at: new Date()
     }),
     new User({
-      _id: new ObjectId(),
+      _id: userId,
       name: 'John Doe',
       email: 'user@techgear.com',
       password,
@@ -67,112 +80,151 @@ async function seed() {
     {
       name: 'MacBook Pro M3 Max',
       price: 3499,
-      stock_quantity: 5,
+      stock_quantity: 50,
       category: categories[0]._id,
       description: 'Apple M3 Max chip, 14-core CPU, 30-core GPU, 36GB Unified Memory, 1TB SSD Storage.',
       images: [{ url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8' }],
-      sold_quantity: 0,
+      sold_quantity: 12,
       is_active: true
     },
     {
       name: 'Razer Blade 16',
       price: 2999,
-      stock_quantity: 8,
+      stock_quantity: 30,
       category: categories[0]._id,
       description: 'Intel Core i9-13950HX, RTX 4090, 16" QHD+ 240Hz, 32GB RAM, 1TB SSD.',
       images: [{ url: 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45' }],
-      sold_quantity: 0,
+      sold_quantity: 5,
       is_active: true
     },
     // Keyboards
     {
       name: 'Keychron Q1 Pro',
       price: 199,
-      stock_quantity: 15,
+      stock_quantity: 100,
       category: categories[1]._id,
       description: 'Wireless Custom Mechanical Keyboard with CNC Aluminum Body.',
       images: [{ url: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae' }],
-      sold_quantity: 0,
+      sold_quantity: 45,
       is_active: true
     },
-    {
-      name: 'Glorious GMMK Pro',
-      price: 169,
-      stock_quantity: 20,
-      category: categories[1]._id,
-      description: '75% Gasket Mount Modular Mechanical Gaming Keyboard.',
-      images: [{ url: 'https://images.unsplash.com/photo-1595225476474-87563907a212' }],
-      sold_quantity: 0,
-      is_active: true
-    },
-    // Mice
     {
       name: 'Logitech G Pro X Superlight 2',
       price: 159,
-      stock_quantity: 30,
+      stock_quantity: 150,
       category: categories[2]._id,
       description: 'Lightspeed Wireless Gaming Mouse, Ultra-Lightweight 60g.',
       images: [{ url: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7' }],
-      sold_quantity: 0,
-      is_active: true
-    },
-    {
-      name: 'Razer DeathAdder V3 Pro',
-      price: 149,
-      stock_quantity: 25,
-      category: categories[2]._id,
-      description: 'High-speed wireless esports gaming mouse.',
-      images: [{ url: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf' }],
-      sold_quantity: 0,
-      is_active: true
-    },
-    // Monitors
-    {
-      name: 'Dell UltraSharp U2723QE',
-      price: 649,
-      stock_quantity: 12,
-      category: categories[3]._id,
-      description: '27-inch 4K USB-C Hub Monitor with IPS Black Technology.',
-      images: [{ url: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf' }],
-      sold_quantity: 0,
-      is_active: true
-    },
-    {
-      name: 'Samsung Odyssey Neo G9',
-      price: 1799,
-      stock_quantity: 4,
-      category: categories[3]._id,
-      description: '49-inch Curved Gaming Monitor with Mini-LED.',
-      images: [{ url: 'https://images.unsplash.com/photo-1551645120-d70bfe84c826' }],
-      sold_quantity: 0,
-      is_active: true
-    },
-    // Audio
-    {
-      name: 'Sony WH-1000XM5',
-      price: 399,
-      stock_quantity: 40,
-      category: categories[4]._id,
-      description: 'Premium Noise Cancelling Wireless Headphones.',
-      images: [{ url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e' }],
-      sold_quantity: 0,
-      is_active: true
-    },
-    {
-      name: 'SteelSeries Arctis Nova Pro',
-      price: 349,
-      stock_quantity: 20,
-      category: categories[4]._id,
-      description: 'Premium Gaming Headset for Multi-System Support.',
-      images: [{ url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df' }],
-      sold_quantity: 0,
+      sold_quantity: 80,
       is_active: true
     }
   ]
 
-  await databaseServices.products.insertMany(
-    productsData.map((p) => new Product(p as unknown as ProductType)) as unknown as Product[]
-  )
+  const seededProducts = productsData.map((p) => new Product(p as unknown as ProductType))
+  await databaseServices.products.insertMany(seededProducts)
+
+  console.log('Seeding Carts...')
+  const userCart = new Cart({
+    user_id: userId,
+    items: [
+      {
+        product_id: seededProducts[2]._id,
+        quantity: 1
+      }
+    ]
+  })
+  await databaseServices.carts.insertOne(userCart)
+
+  console.log('Seeding Orders...')
+  const orders = [
+    // 1. Pending Order
+    new Order({
+      user_id: userId,
+      order_items: [
+        {
+          product_id: seededProducts[0]._id,
+          name: seededProducts[0].name,
+          price: seededProducts[0].price,
+          quantity: 1,
+          image: seededProducts[0].images?.[0].url || ''
+        }
+      ],
+      total_amount: seededProducts[0].price,
+      status: OrderStatus.Pending,
+      payment: {
+        payment_method: PaymentMethod.SePay,
+        payment_status: PaymentStatus.Pending,
+        payment_id: ''
+      },
+      delivery: {
+        delivery_method: DeliveryMethod.Standard,
+        delivery_status: DeliveryStatus.Pending,
+        address: '123 Tech St, Silicon Valley, USA',
+        receiver_name: 'John Doe',
+        phone_number: '0987654321',
+        shipping_fee: 10
+      }
+    }),
+    // 2. Paid & Delivered Order (For Revenue testing)
+    new Order({
+      user_id: userId,
+      order_items: [
+        {
+          product_id: seededProducts[3]._id,
+          name: seededProducts[3].name,
+          price: seededProducts[3].price,
+          quantity: 2,
+          image: seededProducts[3].images?.[0].url || ''
+        }
+      ],
+      total_amount: seededProducts[3].price * 2 + 5,
+      status: OrderStatus.Delivered,
+      payment: {
+        payment_method: PaymentMethod.SePay,
+        payment_status: PaymentStatus.Paid,
+        payment_id: 'sample_stripe_id_123',
+        paid_at: new Date(Date.now() - 86400000) // Yesterday
+      } as any,
+      delivery: {
+        delivery_method: DeliveryMethod.Express,
+        delivery_status: DeliveryStatus.Delivered,
+        address: '123 Tech St, Silicon Valley, USA',
+        receiver_name: 'John Doe',
+        phone_number: '0987654321',
+        shipping_fee: 5
+      },
+      created_at: new Date(Date.now() - 86400000)
+    }),
+    // 3. Cancelled Order
+    new Order({
+      user_id: userId,
+      order_items: [
+        {
+          product_id: seededProducts[1]._id,
+          name: seededProducts[1].name,
+          price: seededProducts[1].price,
+          quantity: 1,
+          image: seededProducts[1].images?.[0].url || ''
+        }
+      ],
+      total_amount: seededProducts[1].price,
+      status: OrderStatus.Cancelled,
+      payment: {
+        payment_method: PaymentMethod.COD,
+        payment_status: PaymentStatus.Pending,
+        payment_id: ''
+      },
+      delivery: {
+        delivery_method: DeliveryMethod.Standard,
+        delivery_status: DeliveryStatus.Cancelled,
+        address: '123 Tech St, Silicon Valley, USA',
+        receiver_name: 'John Doe',
+        phone_number: '0987654321',
+        shipping_fee: 10
+      }
+    })
+  ]
+  await databaseServices.orders.insertMany(orders)
 
   console.log('✅ Seeding completed successfully!')
   console.log('-----------------------------------')

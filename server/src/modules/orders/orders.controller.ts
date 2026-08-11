@@ -5,8 +5,6 @@ import { CreateOrderReqBody, GetOrdersAdminReqQuery } from './schemas/orders.sch
 import { TokenPayload } from '~/modules/auth/types/auth.types'
 import ordersService from './orders.service'
 import { USERS_MESSAGES } from '~/common/constants/messages'
-import { envConfig } from '~/common/configs/configs'
-import { stripe } from '~/common/configs/stripe.config'
 import { USER_ROLE, OrderStatus } from '~/common/constants/enums'
 
 /**
@@ -203,26 +201,4 @@ export const getAllOrdersAdminController = async (req: Request, res: Response) =
     message: USERS_MESSAGES.GET_ORDERS_HISTORY_SUCCESS,
     result
   })
-}
-
-export const handleStripeWebhookController = async (req: Request, res: Response) => {
-  const sig = req.headers['stripe-signature'] as string
-  const endpointSecret = envConfig.STRIPE_WEBHOOK_SECRET as string
-  const rawBody = (req as any).rawBody
-  let event
-
-  try {
-    if (!rawBody) {
-      throw new Error('Raw body not found. Check middleware configuration.')
-    }
-    event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret)
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err)
-    console.error(`[STRIPE WEBHOOK ERROR]: ${message}`)
-    return res.status(HTTP_STATUS.BAD_REQUEST).send(`Webhook Error: ${message}`)
-  }
-
-  await ordersService.handleStripeWebhook(event)
-
-  return res.status(HTTP_STATUS.OK).json({ received: true })
 }

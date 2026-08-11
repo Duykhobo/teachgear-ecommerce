@@ -10,8 +10,6 @@ import cartService from '../cart/cart.service'
 import { CartAggregateResult, CartItemAggregate } from '../cart/types/cart.type'
 
 import { cacheData } from '~/common/utils/cache'
-import { stripe } from '~/common/configs/stripe.config'
-import { envConfig } from '~/common/configs/configs'
 import { enqueueEmailJob } from '~/common/queues/email.queue'
 import logger from '~/common/utils/logger'
 import sePayService from '../payments/sepay.service'
@@ -108,42 +106,10 @@ class OrdersService {
       await session.endSession()
     }
 
-    // Tạo Stripe hoặc SePay Checkout Session NGOÀI transaction — để lỗi hiện rõ
-    let checkout_url: string | null = null
+    // Tạo SePay Checkout Session NGOÀI transaction — để lỗi hiện rõ
     let sepay_form: Record<string, unknown> | null = null
 
-    if (payload.payment_method === PaymentMethod.Stripe) {
-      try {
-        const line_items = cartData.cart.map((item: CartItemAggregate) => ({
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: item.name,
-              images: item.image ? [item.image] : []
-            },
-            unit_amount: Math.round(item.price * 100) // Stripe expects cents
-          },
-          quantity: item.quantity
-        }))
-
-        const stripeSession = await stripe.checkout.sessions.create({
-          payment_method_types: ['card'],
-          mode: 'payment',
-          success_url: envConfig.STRIPE_SUCCESS_URL,
-          cancel_url: envConfig.STRIPE_CANCEL_URL,
-          client_reference_id: user_id.toString(),
-          metadata: {
-            order_id: orderId.toString()
-          },
-          line_items
-        })
-
-        checkout_url = stripeSession.url
-      } catch (stripeError: unknown) {
-        const msg = stripeError instanceof Error ? stripeError.message : String(stripeError)
-        logger.error(`[STRIPE CHECKOUT ERROR] Order ${orderId}: ${msg}`)
-      }
-    } else if (payload.payment_method === PaymentMethod.SePay) {
+    if (payload.payment_method === PaymentMethod.SePay) {
       sepay_form = sePayService.initCheckoutForm({
         order_id: orderId.toString(),
         invoice_number: `INV-${orderId.toString()}`,
@@ -156,7 +122,6 @@ class OrdersService {
       message: USERS_MESSAGES.CREATE_ORDER_SUCCESS,
       data: {
         ...orderData,
-        ...(checkout_url && { checkout_url }),
         ...(sepay_form && { sepay_form })
       }
     }
@@ -217,36 +182,21 @@ class OrdersService {
 
       await session.commitTransaction()
 
-      // 4. Stripe Refund & Restore Sold quantity
-      if (
-        order.payment.payment_method === PaymentMethod.Stripe &&
-        order.payment.payment_status === PaymentStatus.Paid &&
-        order.payment.payment_id
-      ) {
-        try {
-          await stripe.refunds.create({
-            payment_intent: order.payment.payment_id,
-            reason: 'requested_by_customer'
-          })
-          logger.info(`[STRIPE REFUND] Refunded payment_intent ${order.payment.payment_id} for order ${order_id}`)
-
-          // Nếu đơn đã Paid -> Trừ lại số lượng đã bán (sold) vì thực tế là trả hàng
-          for (const item of order.order_items) {
-            await databaseServices.products.updateOne(
-              { _id: new ObjectId(item.product_id) },
-              { $inc: { sold_quantity: -item.quantity } }
-            )
-          }
-
-          // Cập nhật payment_status thành Refunded
-          await databaseServices.orders.updateOne(
-            { _id: new ObjectId(order_id) },
-            { $set: { 'payment.payment_status': PaymentStatus.Refunded, updated_at: new Date() } }
+      // 4. SePay / Online Payment Refund & Restore Sold quantity
+      if (order.payment.payment_status === PaymentStatus.Paid) {
+        // Nếu đơn đã Paid -> Trừ lại số lượng đã bán (sold) vì thực tế là hủy/trả hàng
+        for (const item of order.order_items) {
+          await databaseServices.products.updateOne(
+            { _id: new ObjectId(item.product_id) },
+            { $inc: { sold_quantity: -item.quantity } }
           )
-        } catch (refundError: unknown) {
-          const msg = refundError instanceof Error ? refundError.message : String(refundError)
-          logger.error(`[STRIPE REFUND ERROR] Order ${order_id}: ${msg}`)
         }
+
+        // Cập nhật payment_status thành Refunded
+        await databaseServices.orders.updateOne(
+          { _id: new ObjectId(order_id) },
+          { $set: { 'payment.payment_status': PaymentStatus.Refunded, updated_at: new Date() } }
+        )
       }
 
       return result

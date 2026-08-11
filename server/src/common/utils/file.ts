@@ -35,13 +35,11 @@ export const handleUploadImageUser = async (req: Request) => {
 
       //nếu sai valid thì dùng form.emit để gữi lỗi
       if (!valid) {
-        form.emit(
-          'error' as unknown as 'error',
-          new ErrorWithStatus({
-            message: 'File type is not valid',
-            status: HTTP_STATUS.UNSUPPORTED_MEDIA_TYPE
-          }) as unknown as Error
-        )
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        form.emit('error' as any, new ErrorWithStatus({
+          message: 'File type is not valid',
+          status: HTTP_STATUS.UNSUPPORTED_MEDIA_TYPE
+        }) as any)
       }
       //nếu đúng thì return valid
       return valid
@@ -109,7 +107,7 @@ export const handleUploadImageProducts = async (req: Request) => {
   //form.parse về thành promise
   //files là object có dạng giống hình test code cuối cùng
   return new Promise<File[]>((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
+    form.parse(req, (err, _fields, files) => {
       if (err) {
         return reject(
           new ErrorWithStatus({
@@ -155,13 +153,11 @@ export const handleUploadVideo = async (req: Request) => {
       const valid = name === 'video' && Boolean(mimetype?.includes('video/'))
       //nếu sai valid thì dùng form.emit để gữi lỗi
       if (!valid) {
-        form.emit(
-          'error' as unknown as 'error',
-          new ErrorWithStatus({
-            message: 'File type is not valid',
-            status: HTTP_STATUS.BAD_REQUEST
-          }) as unknown as Error
-        )
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        form.emit('error' as any, new ErrorWithStatus({
+          message: 'File type is not valid',
+          status: HTTP_STATUS.BAD_REQUEST
+        }) as any)
       }
       return valid
     }

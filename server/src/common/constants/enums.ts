@@ -69,9 +69,8 @@ export enum DeliveryStatus {
  * Phương thức thanh toán
  */
 export enum PaymentMethod {
-  Stripe = 'Stripe',
-  COD = 'COD',
-  SePay = 'SePay'
+  SePay = 'SePay',
+  COD = 'COD'
 }
 
 /**

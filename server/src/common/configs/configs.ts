@@ -77,11 +77,11 @@ export const configSchema = z.object({
   CLOUDINARY_API_KEY: z.string(),
   CLOUDINARY_API_SECRET: z.string(),
 
-  // Stripe
-  STRIPE_SECRET_KEY: z.string(),
-  STRIPE_WEBHOOK_SECRET: z.string(),
-  STRIPE_SUCCESS_URL: z.string(),
-  STRIPE_CANCEL_URL: z.string(),
+  // Stripe (Optional / Legacy)
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_SUCCESS_URL: z.string().optional(),
+  STRIPE_CANCEL_URL: z.string().optional(),
 
   // Google OAuth2
   GOOGLE_CLIENT_ID: z.string().optional(),

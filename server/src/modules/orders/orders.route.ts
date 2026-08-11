@@ -14,24 +14,11 @@ import {
   getTopSellingProductsController,
   getUserOrdersController,
   getOrderController,
-  getAllOrdersAdminController,
-  handleStripeWebhookController
+  getAllOrdersAdminController
 } from '~/modules/orders/orders.controller'
 import { wrapAsync } from '~/common/utils/handler'
 
 const orderRoutes = Router()
-
-/**
- * @swagger
- * /orders/webhook:
- *   post:
- *     summary: Stripe Webhook (Hệ thống tự gọi, không dành cho User)
- *     tags: [Orders]
- *     responses:
- *       200:
- *         description: Webhook received.
- */
-orderRoutes.post('/webhook', wrapAsync(handleStripeWebhookController))
 
 /**
  * @swagger
