@@ -14,7 +14,7 @@ describe('System Health & Root Endpoint Tests', () => {
     const response = await request(app).get('/health')
 
     expect(response.status).toBe(200)
-    expect(response.body.status).toBe('OK')
+    expect(response.body.message).toBe('OK')
     expect(response.body.services).toBeDefined()
     expect(response.body.services.mongodb).toBe('healthy')
   })
