@@ -70,7 +70,8 @@ export enum DeliveryStatus {
  */
 export enum PaymentMethod {
   Stripe = 'Stripe',
-  COD = 'COD'
+  COD = 'COD',
+  SePay = 'SePay'
 }
 
 /**

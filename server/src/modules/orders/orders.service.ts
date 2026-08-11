@@ -14,6 +14,7 @@ import { stripe } from '~/common/configs/stripe.config'
 import { envConfig } from '~/common/configs/configs'
 import { enqueueEmailJob } from '~/common/queues/email.queue'
 import logger from '~/common/utils/logger'
+import sePayService from '../payments/sepay.service'
 
 // State Machine: định nghĩa các transition hợp lệ cho Order Status
 // Tách ra module level — không tạo lại mỗi lần gọi updateOrderStatus
@@ -107,8 +108,10 @@ class OrdersService {
       await session.endSession()
     }
 
-    // Tạo Stripe Checkout Session NGOÀI transaction — để lỗi Stripe hiện rõ
+    // Tạo Stripe hoặc SePay Checkout Session NGOÀI transaction — để lỗi hiện rõ
     let checkout_url: string | null = null
+    let sepay_form: Record<string, unknown> | null = null
+
     if (payload.payment_method === PaymentMethod.Stripe) {
       try {
         const line_items = cartData.cart.map((item: CartItemAggregate) => ({
@@ -140,13 +143,21 @@ class OrdersService {
         const msg = stripeError instanceof Error ? stripeError.message : String(stripeError)
         logger.error(`[STRIPE CHECKOUT ERROR] Order ${orderId}: ${msg}`)
       }
+    } else if (payload.payment_method === PaymentMethod.SePay) {
+      sepay_form = sePayService.initCheckoutForm({
+        order_id: orderId.toString(),
+        invoice_number: `INV-${orderId.toString()}`,
+        amount: cartData.cart_total,
+        description: `Thanh toan don hang ${orderId.toString()}`
+      })
     }
 
     return {
       message: USERS_MESSAGES.CREATE_ORDER_SUCCESS,
       data: {
         ...orderData,
-        ...(checkout_url && { checkout_url })
+        ...(checkout_url && { checkout_url }),
+        ...(sepay_form && { sepay_form })
       }
     }
   }

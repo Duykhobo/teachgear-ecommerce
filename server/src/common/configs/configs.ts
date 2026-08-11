@@ -86,7 +86,12 @@ export const configSchema = z.object({
   // Google OAuth2
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
-  GOOGLE_REDIRECT_URI: z.string().optional()
+  GOOGLE_REDIRECT_URI: z.string().optional(),
+
+  // SePay Payment Gateway
+  SEPAY_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
+  SEPAY_MERCHANT_ID: z.string().optional(),
+  SEPAY_SECRET_KEY: z.string().optional()
 })
 
 // Validate process.env
